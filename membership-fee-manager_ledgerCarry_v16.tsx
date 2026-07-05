@@ -377,7 +377,8 @@ export default function App() {
       const wd = isWithdrawn(m);
       const row = [idx+1, m.regNo||'', m.name, m.society||'', m.joinDate||'', m.leaveDate||'', wd?'탈회':'현회원'];
       let sum = 0; const pa = Number(m.priorArrears||0);
-      if (anyPrior) { row.push(pa>0?pa:'-'); if (!wd) sum += pa; }
+      const pyr = alloc.find(a => a.isPrior); const prem = pyr ? Math.max(0, pyr.required - pyr.allocated) : 0;
+      if (anyPrior) { row.push(pa>0?(prem>0?prem:'-'):'-'); if (!wd) sum += prem; }
       const jy = yearOf(m.joinDate);
       for (const y of yearRange) {
         const bj = m.joinDate && y < jy, al = m.leaveDate && y >= yearOf(m.leaveDate);
