@@ -1155,7 +1155,7 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
         {rosterPrev && (
           <div className="mt-3 border border-indigo-200 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <div className="font-medium text-sm">미리보기 — {rosterPrev.fileName} (현회원 {rosterPrev.activeN}명 · 탈회 {rosterPrev.wN}명 · 확인필요 {rosterPrev.reviewN}명)</div>
+              <div className="font-medium text-sm flex-1 min-w-0 pr-3">미리보기 — {rosterPrev.fileName} (현회원 {rosterPrev.activeN}명 · 탈회 {rosterPrev.wN}명 · 확인필요 {rosterPrev.reviewN}명)</div>
               <div className="flex gap-2">
                 <button onClick={() => setRosterPrev(null)} className="px-3 py-1.5 text-gray-600 text-sm">취소</button>
                 <button onClick={() => { const r = onImportRoster(rosterPrev.rows, 'merge'); setResult({ type:'roster', ...r }); setRosterPrev(null); }} className="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-sm">이 명단으로 반영</button>
