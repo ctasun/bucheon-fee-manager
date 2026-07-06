@@ -207,12 +207,15 @@ export default function App() {
   const [members, setMembers] = useState([]);
   const [fees, setFees] = useState([]);
   const [tx, setTx] = useState([]);
-  const [config, setConfig] = useState({ groupName: '부천지역세무사회', cellMode: 'unpaid', msgTemplate: '안녕하세요, {이름}님.\n{단체명}입니다.\n{연도}년 회비 {금액}원이 미납 상태이오니 확인 부탁드립니다.\n감사합니다.' });
+  const [config, setConfig] = useState({ groupName: '부천지역세무사회', cellMode: 'unpaid', relayUrl: '', relayToken: '', msgTemplate: '안녕하세요, {이름}님.\n{단체명}입니다.\n{연도}년 회비 {금액}원이 미납 상태이오니 확인 부탁드립니다.\n감사합니다.' });
   const [uploadMeta, setUploadMeta] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [modal, setModal] = useState(null);
   const [editing, setEditing] = useState(null);
   const [resetConfirm, setResetConfirm] = useState(false);
+  const [lastSync, setLastSync] = useState(null);
+  const [syncMsg, setSyncMsg] = useState('');
+  const syncTimer = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -234,6 +237,14 @@ export default function App() {
   useEffect(() => { if (loaded) sv(SK.T, tx); }, [tx, loaded]);
   useEffect(() => { if (loaded) sv(SK.C, config); }, [config, loaded]);
   useEffect(() => { if (loaded && uploadMeta) sv(SK.U, uploadMeta); }, [uploadMeta, loaded]);
+  useEffect(() => {
+    if (!loaded) return;
+    if (!(config.relayUrl||'').trim()) return;
+    if (members.length === 0) return;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => { pushToDrive(false); }, 3000);
+    return () => { if (syncTimer.current) clearTimeout(syncTimer.current); };
+  }, [members, fees, tx, loaded]);
 
   const aliasMap = useMemo(() => {
     const map = new Map();
@@ -360,7 +371,7 @@ export default function App() {
     setResetConfirm(false);
   };
 
-  const exportAll = () => {
+  const buildWorkbook = () => {
     const wb = XLSX.utils.book_new();
     const anyPrior = members.some(m => Number(m.priorArrears||0) > 0);
     const mrows = [['등록번호','성명','입금자명','별칭','지역세무사회명','연락처','개업/전입일','폐업/전출일','2020까지이월미납','비고']];
@@ -395,9 +406,49 @@ export default function App() {
     const trows = [['날짜','시각','입금자명','금액','적요','매칭회원']];
     for (const t of [...tx].sort((a,b)=>new Date(a.date)-new Date(b.date))) { const mb = members.find(m=>m.id===t.memberId); trows.push([t.date, t.time||'', t.depositorName, t.amount, t.description||'', mb?mb.name:'(미매칭)']); }
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(trows), '거래내역');
-    XLSX.writeFile(wb, `회비관리_${today()}.xlsx`);
+    return wb;
+  };
+  const exportAll = () => { XLSX.writeFile(buildWorkbook(), `회비관리_${today()}.xlsx`); };
+  const pushToDrive = async (manual) => {
+    const url = (config.relayUrl||'').trim();
+    if (!url) { if (manual) setSyncMsg('중계 URL이 비어 있습니다. 회비설정 탭에서 입력하세요.'); return; }
+    if (members.length === 0) { if (manual) setSyncMsg('회원이 0명이라 저장을 건너뜁니다(안전장치).'); return; }
+    try {
+      const b64 = XLSX.write(buildWorkbook(), { bookType: 'xlsx', type: 'base64' });
+      setSyncMsg('저장 중…');
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: (config.relayToken||'').trim(), xlsxBase64: b64, filename: `회비미납현황_${today()}.xlsx` }) });
+      const j = await r.json();
+      if (j && j.ok) { setLastSync(new Date().toISOString()); setSyncMsg('드라이브 저장 완료'); }
+      else { setSyncMsg('저장 실패: ' + (j && j.error ? j.error : '알 수 없음')); }
+    } catch (e) { setSyncMsg('저장 실패(네트워크/응답): ' + String(e)); }
   };
 
+  const exportBackup = () => {
+    const obj = { __bhm_backup: 1, version: 18, savedAt: new Date().toISOString(), members, fees, tx, config, uploadMeta };
+    const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `회비관리_백업_${today()}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  const importBackup = (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const o = JSON.parse(String(reader.result));
+        if (!o || !o.__bhm_backup) { alert('이 파일은 회비관리 백업 파일이 아닙니다.'); return; }
+        if (!window.confirm('현재 데이터를 백업 파일 내용으로 교체합니다. 계속할까요?')) return;
+        setMembers(Array.isArray(o.members) ? o.members : []);
+        setFees(Array.isArray(o.fees) && o.fees.length ? o.fees : buildDefaultFees(FEE_START, new Date().getFullYear() + 1));
+        setTx(Array.isArray(o.tx) ? o.tx : []);
+        if (o.config) setConfig(o.config);
+        setUploadMeta(o.uploadMeta || null);
+        alert('백업을 불러왔습니다.');
+      } catch (e) { alert('백업 파일을 읽지 못했습니다: ' + e); }
+    };
+    reader.readAsText(file);
+  };
   const tabs = [
     { id: 'status', name: '납입현황', icon: Grid3x3 },
     { id: 'members', name: '회원관리', icon: Users },
@@ -444,7 +495,7 @@ export default function App() {
         {tab === 'status' && <StatusGrid members={currentMembers} yearRange={yearRange} allocations={allocations} fees={fees} cellMode={config.cellMode} setCellMode={(m) => setConfig({ ...config, cellMode: m })} onCellClick={(m, yr) => setModal({ type: 'cell', member: m, yearData: yr })} />}
         {tab === 'members' && <MembersTab members={currentMembers} onAdd={addMember} onUpdate={updateMember} onDelete={deleteMember} editing={editing} setEditing={setEditing} />}
         {tab === 'import' && <ImportTab onImportLedger={importLedger} onImportRoster={importRoster} memberCount={members.length} onReset={() => setResetConfirm(true)} />}
-        {tab === 'fees' && <FeesTab fees={fees} setFeeForYear={setFeeForYear} deleteFee={deleteFee} />}
+        {tab === 'fees' && <><SyncCard config={config} setConfig={setConfig} lastSync={lastSync} syncMsg={syncMsg} onTest={() => pushToDrive(true)} /><BackupCard onExport={exportBackup} onImport={importBackup} memberCount={members.length} txCount={tx.length} /><FeesTab fees={fees} setFeeForYear={setFeeForYear} deleteFee={deleteFee} /></>}
         {tab === 'upload' && <UploadTab tx={tx} setTx={setTx} members={members} aliasMap={aliasMap} regIndex={regIndex} nameIndex={nameIndex} uploadMeta={uploadMeta} setUploadMeta={setUploadMeta} onAssign={assignTx} onDeleteTx={deleteTx} />}
         {tab === 'overdue' && <OverdueTab members={members} allocations={allocations} config={config} setConfig={setConfig} />}
         {tab === 'withdrawn' && <WithdrawnTab members={withdrawnMembers} allocations={allocations} onUpdate={updateMember} onDelete={deleteMember} />}
@@ -462,6 +513,41 @@ export default function App() {
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+function BackupCard({ onExport, onImport, memberCount, txCount }) {
+  const fileRef = React.useRef(null);
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+      <h3 className="font-semibold mb-1">전체 백업 · 인수인계</h3>
+      <p className="text-xs text-gray-500 mb-3">회원·회비·통장·설정 전체를 파일 1개로 저장합니다. 다음 담당자는 이 파일을 "백업 불러오기"로 불러오면 그대로 이어받습니다. (현재 회원 {memberCount}명 · 거래 {txCount}건)</p>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={onExport} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium"><Download className="w-4 h-4" /> 전체 백업 내려받기</button>
+        <button onClick={() => fileRef.current && fileRef.current.click()} className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"><Upload className="w-4 h-4" /> 백업 불러오기</button>
+        <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={e => { const f = e.target.files && e.target.files[0]; if (f) onImport(f); e.target.value=''; }} />
+      </div>
+      <p className="mt-2 text-xs text-gray-400">불러오기는 현재 데이터를 백업 내용으로 교체합니다(불러오기 전 확인창이 뜹니다).</p>
+    </div>
+  );
+}
+
+function SyncCard({ config, setConfig, lastSync, syncMsg, onTest }) {
+  const fmtT = (iso) => { if (!iso) return '없음'; const d = new Date(iso); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+  const on = !!(config.relayUrl||'').trim();
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="font-semibold">구글 드라이브 자동저장 <span className={`ml-1 text-xs px-2 py-0.5 rounded-full ${on?'bg-emerald-100 text-emerald-700':'bg-gray-100 text-gray-500'}`}>{on?'켜짐':'꺼짐'}</span></h3>
+        <button onClick={onTest} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"><Save className="w-4 h-4 inline mr-1" />지금 저장</button>
+      </div>
+      <div className="space-y-2">
+        <div><label className="text-xs text-gray-600 block mb-1">중계 URL (…/exec)</label><input value={config.relayUrl||''} onChange={e=>setConfig({...config, relayUrl:e.target.value})} placeholder="https://script.google.com/macros/s/.../exec" className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" /></div>
+        <div><label className="text-xs text-gray-600 block mb-1">토큰</label><input value={config.relayToken||''} onChange={e=>setConfig({...config, relayToken:e.target.value})} placeholder="예: bcstax2026x9k3m2" className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" /></div>
+      </div>
+      <div className="mt-3 text-xs text-gray-600">마지막 자동저장: <b>{fmtT(lastSync)}</b>{syncMsg && <span className="ml-2 text-indigo-600">· {syncMsg}</span>}</div>
+      <div className="mt-1 text-xs text-gray-400">회원 0명일 때는 자동저장을 건너뜁니다(빈 데이터 덮어쓰기 방지). 데이터가 바뀌면 몇 초 뒤 자동 저장됩니다.</div>
     </div>
   );
 }
@@ -692,7 +778,7 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
     const above = (data[hi-1]||[]).map(c => String(c).trim());
     const headers = hrow.map((h, i) => h || above[i] || '');
     const col = (keys) => headers.findIndex(h => keys.some(k => h.includes(k)));
-    const nameCol = col(['성명','이름']), regCol = col(['등록번호']), socCol = col(['지역세무사회','세무사회','지역회']), joinCol = col(['개업','전입']), leaveCol = col(['폐업','전출']);
+    const nameCol = col(['성명','이름']), regCol = col(['등록번호']), socCol = headers.findIndex((h,idx) => idx !== nameCol && !h.includes('성명') && !h.includes('이름') && ['지역회','지역세무사회','세무사회'].some(k => h.includes(k))), joinCol = col(['개업','전입']), leaveCol = col(['폐업','전출']);
     const priorCols = []; headers.forEach((h, i) => { if (h.includes('이전') || h.includes('이후')) priorCols.push(i); });
     const yearCols = []; headers.forEach((h, i) => { if (priorCols.includes(i)) return; const m = h.match(/(20\d\d)/); if (m) yearCols.push({ year: Number(m[1]), idx: i }); });
     if (nameCol < 0) { alert('성명 컬럼을 찾을 수 없습니다.'); return; }
@@ -720,7 +806,7 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
     if (hi < 0) hi = 0;
     const headers = (data[hi]||[]).map(c=>String(c).trim());
     const col = (keys) => headers.findIndex(h => keys.some(k => h.includes(k)));
-    const nameCol = col(['성명','이름']), regCol = col(['등록번호']), socCol = col(['지역회','지역세무사회','세무사회']), joinCol = col(['개업','전입']), leaveCol = col(['폐업','전출']);
+    const nameCol = col(['성명','이름']), regCol = col(['등록번호']), socCol = headers.findIndex((h,idx) => idx !== nameCol && !h.includes('성명') && !h.includes('이름') && ['지역회','지역세무사회','세무사회'].some(k => h.includes(k))), joinCol = col(['개업','전입']), leaveCol = col(['폐업','전출']);
     if (nameCol < 0) { alert('성명 컬럼을 찾을 수 없습니다.'); return; }
 
     // 전출 사유 판정: 날짜면 그 날짜, 글자면 탈회 사유
@@ -796,20 +882,47 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
   return (
     <div className="space-y-3">
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-        <h3 className="font-semibold text-indigo-900 mb-2">📥 가져오기 순서</h3>
-        <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
-          <li><b>①최신 회원명단</b> 먼저 업로드 → 현회원 확정("전체 교체")</li>
-          <li><b>②옛 미납장부</b> 업로드 → 등록번호로 현회원에 2010이전 미수 + 2020년까지 미납 부착</li>
-          <li><b>거래내역 업로드</b> 탭에서 통장 파일 → 2021년 이후 납입</li>
-        </ol>
+        <h3 className="font-semibold text-indigo-900 mb-2">가져오기 안내</h3>
+        <div className="text-sm text-gray-700 space-y-1">
+          <div><b>평소(한두 달마다):</b> 아래 <b>최신 회원명단</b>만 반영하면 됩니다. 신규 추가·전출 탈회가 자동 처리됩니다.</div>
+          <div><b>최초 1회 설정:</b> ①회원명단 반영 → ②옛 미납장부 → ③거래내역 업로드 탭에서 통장 파일.</div>
+        </div>
         <div className="text-xs text-gray-500 mt-2">※ 회비(2011년~20만원, 2020~2022년 10만원)는 자동 설정됩니다. 2021년 이후는 통장 기준으로 계산됩니다.</div>
       </div>
 
       {result && <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md text-sm text-emerald-800">{result.type === 'roster' ? `✅ 회원명단 반영 — 신규 ${result.added}명, 갱신 ${result.updated}명` : `✅ 미납장부 반영 — 현회원 ${result.members}명에 부착, 이관 입금 ${result.tx}건 (현회원 아님 ${result.skipped||0}명 제외)`}</div>}
 
+      {/* Roster */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-sm flex items-center justify-center font-bold">①</span><h3 className="font-semibold">최신 회원명단 가져오기 <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">평소 사용</span></h3></div>
+        <p className="text-sm text-gray-600 mb-3">미납액 없는 순수 명단. 신규 회원을 추가하고 기존 회원 정보를 갱신합니다. 8자리 날짜(19820203) 자동 변환.</p>
+        <input ref={rosterRef} type="file" accept=".xlsx,.xls,.csv" onChange={handle(parseRoster)} className="hidden" />
+        <button onClick={() => rosterRef.current?.click()} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"><Upload className="w-4 h-4 inline mr-1" /> 회원명단 파일 선택</button>
+        {rosterPrev && (
+          <div className="mt-3 border border-indigo-200 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium text-sm">미리보기 — {rosterPrev.fileName} (현회원 {rosterPrev.activeN}명 · 탈회 {rosterPrev.wN}명 · 확인필요 {rosterPrev.reviewN}명)</div>
+              <div className="flex gap-2">
+                <button onClick={() => setRosterPrev(null)} className="px-3 py-1.5 text-gray-600 text-sm">취소</button>
+                <button onClick={() => { const r = onImportRoster(rosterPrev.rows, 'merge'); setResult({ type:'roster', ...r }); setRosterPrev(null); }} className="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-sm">이 명단으로 반영</button>
+                
+              </div>
+            </div>
+            <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800"><b>"전출명단"</b> 아래 회원만 <b>탈회(회색)</b>로 처리됩니다. 전출명단 위(개업·전입일이 있는 회원)는 F열 내용과 무관하게 모두 <b>현회원</b>으로 관리됩니다.</div>
+            <div className="overflow-x-auto max-h-80 border border-gray-200 rounded">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-2 py-1 text-left border-r">등록번호</th><th className="px-2 py-1 text-left border-r">성명</th><th className="px-2 py-1 text-left border-r">개업/전입일</th><th className="px-2 py-1 text-left border-r">상태</th><th className="px-2 py-1 text-left border-r">사유</th></tr></thead>
+                <tbody>{rosterPrev.rows.slice(0,120).map((r,i) => <tr key={i} className={`border-t border-gray-100 ${r.withdrawn ? 'bg-gray-50 text-gray-400' : (r.review ? 'bg-amber-50' : '')}`}><td className="px-2 py-1 border-r text-gray-500">{r.regNo}</td><td className="px-2 py-1 border-r font-medium">{r.name}</td><td className="px-2 py-1 border-r">{r.joinDate}{r.joinDate && (monthOf(r.joinDate)>=7?' (하)':' (상)')}</td><td className="px-2 py-1 border-r">{r.withdrawn ? <span className="text-rose-500">탈회</span> : (r.review ? <span className="text-amber-600 font-medium">확인필요</span> : <span className="text-emerald-600">현회원</span>)}</td><td className="px-2 py-1 border-r text-gray-500">{r.reason || (r.leaveDate && r.withdrawn ? r.leaveDate : '')}</td></tr>)}</tbody>
+              </table>
+              {rosterPrev.rows.length > 120 && <div className="text-center text-xs text-gray-500 py-2">... 외 {rosterPrev.rows.length-120}명</div>}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Ledger */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-amber-600 text-white text-sm flex items-center justify-center font-bold">②</span><h3 className="font-semibold">옛 미납장부 가져오기</h3></div>
+        <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-amber-600 text-white text-sm flex items-center justify-center font-bold">②</span><h3 className="font-semibold">옛 미납장부 가져오기 <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">최초 1회만</span></h3></div>
         <p className="text-sm text-gray-600 mb-3">2010이전 미수금액 + 연도별 미납액이 있는 장부입니다. 2021년 이후는 통장 기준이라 자동 제외됩니다.</p>
         <input ref={ledgerRef} type="file" accept=".xlsx,.xls,.csv" onChange={handle(parseLedger)} className="hidden" />
         <button onClick={() => ledgerRef.current?.click()} className="px-4 py-2 bg-amber-600 text-white rounded-md text-sm hover:bg-amber-700"><Upload className="w-4 h-4 inline mr-1" /> 미납장부 파일 선택</button>
@@ -829,34 +942,6 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
                 <tbody>{ledgerPrev.rows.slice(0,100).map((r,i) => <tr key={i} className="border-t border-gray-100"><td className="px-2 py-1 border-r text-gray-500">{r.regNo}</td><td className="px-2 py-1 border-r font-medium">{r.name}</td><td className="px-2 py-1 border-r">{r.joinDate}</td>{ledgerPrev.hasPrior && <td className="px-2 py-1 border-r text-right bg-purple-50/50 text-purple-700">{r.priorArrears?fmt(r.priorArrears):<span className="text-gray-300">-</span>}</td>}{ledgerPrev.yearCols.map(y => <td key={y} className={`px-2 py-1 border-r text-right ${y > LEDGER_CUTOFF_YEAR ? 'bg-gray-50 text-gray-300' : ''}`}>{y > LEDGER_CUTOFF_YEAR ? '제외' : (r.years[y]?fmt(r.years[y]):<span className="text-gray-300">-</span>)}</td>)}</tr>)}</tbody>
               </table>
               {ledgerPrev.rows.length > 100 && <div className="text-center text-xs text-gray-500 py-2">... 외 {ledgerPrev.rows.length-100}명</div>}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Roster */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-sm flex items-center justify-center font-bold">①</span><h3 className="font-semibold">최신 회원명단 가져오기</h3></div>
-        <p className="text-sm text-gray-600 mb-3">미납액 없는 순수 명단. 신규 회원을 추가하고 기존 회원 정보를 갱신합니다. 8자리 날짜(19820203) 자동 변환.</p>
-        <input ref={rosterRef} type="file" accept=".xlsx,.xls,.csv" onChange={handle(parseRoster)} className="hidden" />
-        <button onClick={() => rosterRef.current?.click()} className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"><Upload className="w-4 h-4 inline mr-1" /> 회원명단 파일 선택</button>
-        {rosterPrev && (
-          <div className="mt-3 border border-indigo-200 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-medium text-sm">미리보기 — {rosterPrev.fileName} (현회원 {rosterPrev.activeN}명 · 탈회 {rosterPrev.wN}명 · 확인필요 {rosterPrev.reviewN}명)</div>
-              <div className="flex gap-2">
-                <button onClick={() => setRosterPrev(null)} className="px-3 py-1.5 text-gray-600 text-sm">취소</button>
-                <button onClick={() => { const r = onImportRoster(rosterPrev.rows, 'merge'); setResult({ type:'roster', ...r }); setRosterPrev(null); }} className="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-sm">기존 유지 + 신규 추가</button>
-                <button onClick={() => { const r = onImportRoster(rosterPrev.rows, 'replace'); setResult({ type:'roster', ...r }); setRosterPrev(null); }} className="px-3 py-1.5 bg-rose-600 text-white rounded-md text-sm">전체 교체</button>
-              </div>
-            </div>
-            <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800"><b>"전출명단"</b> 아래 회원만 <b>탈회(회색)</b>로 처리됩니다. 전출명단 위(개업·전입일이 있는 회원)는 F열 내용과 무관하게 모두 <b>현회원</b>으로 관리됩니다.</div>
-            <div className="overflow-x-auto max-h-80 border border-gray-200 rounded">
-              <table className="w-full text-xs">
-                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-2 py-1 text-left border-r">등록번호</th><th className="px-2 py-1 text-left border-r">성명</th><th className="px-2 py-1 text-left border-r">개업/전입일</th><th className="px-2 py-1 text-left border-r">상태</th><th className="px-2 py-1 text-left border-r">사유</th></tr></thead>
-                <tbody>{rosterPrev.rows.slice(0,120).map((r,i) => <tr key={i} className={`border-t border-gray-100 ${r.withdrawn ? 'bg-gray-50 text-gray-400' : (r.review ? 'bg-amber-50' : '')}`}><td className="px-2 py-1 border-r text-gray-500">{r.regNo}</td><td className="px-2 py-1 border-r font-medium">{r.name}</td><td className="px-2 py-1 border-r">{r.joinDate}{r.joinDate && (monthOf(r.joinDate)>=7?' (하)':' (상)')}</td><td className="px-2 py-1 border-r">{r.withdrawn ? <span className="text-rose-500">탈회</span> : (r.review ? <span className="text-amber-600 font-medium">확인필요</span> : <span className="text-emerald-600">현회원</span>)}</td><td className="px-2 py-1 border-r text-gray-500">{r.reason || (r.leaveDate && r.withdrawn ? r.leaveDate : '')}</td></tr>)}</tbody>
-              </table>
-              {rosterPrev.rows.length > 120 && <div className="text-center text-xs text-gray-500 py-2">... 외 {rosterPrev.rows.length-120}명</div>}
             </div>
           </div>
         )}
