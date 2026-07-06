@@ -1572,5 +1572,5 @@ function EmptyState({ icon: Ic, title, desc }) {
 }
 
 </script>
-</body>
+<script>(function(){function e(){var b=[].slice.call(document.querySelectorAll("button")),r=b.find(function(x){var t=x.textContent.trim();return t==="이 명단으로 반영"||t==="가져오기"||t.indexOf("가져오기 (")===0}),h=document.getElementById("cfm-help");if(r){if(!h){h=document.createElement("button");h.id="cfm-help";h.style.cssText="position:fixed;bottom:18px;right:18px;z-index:99999;background:#059669;color:#fff;padding:14px 22px;border:none;border-radius:10px;font-size:16px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer";document.body.appendChild(h)}h.textContent="✅ "+r.textContent.trim()+" (확정)";h.onclick=function(){r.click()}}else if(h){h.remove()}}setInterval(e,700)})();</script></body>
 </html>
