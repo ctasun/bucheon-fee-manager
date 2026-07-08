@@ -22,7 +22,7 @@
 </head>
 <body>
 <div id="root"></div>
-<div id="buildstamp">부천세무사회 회비관리 · v29 · 업데이트 2026-07-08 10:48 (KST)</div>
+<div id="buildstamp">부천세무사회 회비관리 · v29 · 업데이트 2026-07-08 10:57 (KST)</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -919,7 +919,7 @@ function StatusGrid({ members, yearRange, allocations, fees, cellMode, setCellMo
   }, [members, allocations]);
 
   if (!members.length) return <EmptyState icon={Users} title="회원이 없습니다" desc="기존장부 가져오기 또는 회원관리 탭에서 회원을 먼저 등록해 주세요." />;
-  const sorted = const sorted = [...members]; || '').localeCompare(b.name || '', 'ko'));
+  const sorted = [...members];
   const isLongTerm = (m) => { const al = allocations.get(m.id) || []; return !isWithdrawn(m) && al.filter(y => y.required > 0 && y.allocated < y.required).length >= 5; };
   const longCount = sorted.filter(isLongTerm).length;
   const visible = hideLong ? sorted.filter(m => !isLongTerm(m)) : sorted;
@@ -1679,34 +1679,36 @@ function EmptyState({ icon: Ic, title, desc }) {
 </script>
 <script>(function(){function e(){var b=[].slice.call(document.querySelectorAll("button")),r=b.find(function(x){var t=x.textContent.trim();return t==="이 명단으로 반영"||t==="가져오기"||t.indexOf("가져오기 (")===0}),h=document.getElementById("cfm-help");if(r){if(!h){h=document.createElement("button");h.id="cfm-help";h.style.cssText="position:fixed;bottom:18px;right:18px;z-index:99999;background:#059669;color:#fff;padding:14px 22px;border:none;border-radius:10px;font-size:16px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer";document.body.appendChild(h)}h.textContent="✅ "+r.textContent.trim()+" (확정)";h.onclick=function(){r.click()}}else if(h){h.remove()}}setInterval(e,700)})();</script>
 <script>
-/* 미납액 박스 평상시 숨김 + 보기 토글 · 2026-07-08 추가 */
+/* 상단 금액 박스 전체 숨김 + 보기 토글 · v29 */
 (function(){
-  var hidden = true;
-  function findCard(){
-    var ls = document.querySelectorAll('.text-gray-500');
-    for (var i=0;i<ls.length;i++){
+  var hidden=true;
+  function findGrid(){
+    var ls=document.querySelectorAll('.text-gray-500');
+    for(var i=0;i<ls.length;i++){
       var t=(ls[i].textContent||'').trim();
-      if (t.indexOf('현재 미납액')===0) return ls[i].parentElement;
+      if(t.indexOf('\uD604 \uD68C\uC6D0 \uD68C\uBE44 \uC758\uBB34')===0){
+        var card=ls[i].parentElement;
+        return card?card.parentElement:null;
+      }
     }
     return null;
   }
   function apply(){
-    var c=findCard();
-    if(c) c.style.display = hidden ? 'none' : '';
-    var b=document.getElementById('cfm-unpaid-toggle');
-    if(b) b.textContent = hidden ? '\uD83D\uDC41 \uBBF8\uB0A9\uC561 \uBCF4\uAE30' : '\uD83D\uDE48 \uBBF8\uB0A9\uC561 \uC228\uAE30\uAE30';
+    var g=findGrid();
+    if(g) g.style.display=hidden?'none':'';
+    var b=document.getElementById('cfm-amt-toggle');
+    if(b) b.textContent=hidden?'\uD83D\uDC41 \uAE08\uC561 \uBCF4\uAE30':'\uD83D\uDE48 \uAE08\uC561 \uC228\uAE30\uAE30';
   }
   function ensure(){
-    if(document.getElementById('cfm-unpaid-toggle')) return;
+    if(document.getElementById('cfm-amt-toggle'))return;
     var b=document.createElement('button');
-    b.id='cfm-unpaid-toggle';
-    b.type='button';
-    b.style.cssText='position:fixed;left:18px;bottom:18px;z-index:99999;background:#e11d48;color:#fff;padding:10px 16px;border:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer';
-    b.onclick=function(){ hidden=!hidden; apply(); };
+    b.id='cfm-amt-toggle';b.type='button';
+    b.style.cssText='position:fixed;left:18px;bottom:18px;z-index:99999;background:#334155;color:#fff;padding:10px 16px;border:none;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer';
+    b.onclick=function(){hidden=!hidden;apply();};
     document.body.appendChild(b);
   }
-  setInterval(function(){ ensure(); apply(); }, 500);
-  ensure(); apply();
+  setInterval(function(){ensure();apply();},500);
+  ensure();apply();
 })();
 </script>
 </body>
