@@ -22,7 +22,7 @@
 </head>
 <body>
 <div id="root"></div>
-<div id="buildstamp">부천세무사회 회비관리 · v27 · 업데이트 2026-07-08 09:48 (KST)</div>
+<div id="buildstamp">부천세무사회 회비관리 · v28 · 업데이트 2026-07-08 10:05 (KST)</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -896,21 +896,26 @@ function SyncCard({ config, setConfig, lastSync, syncMsg, onTest }) {
 function StatusGrid({ members, yearRange, allocations, fees, cellMode, setCellMode, onCellClick, onMemberClick }) {
   const mode = cellMode || 'unpaid';
   const [hideLong, setHideLong] = useState(true);
+  const [hideAmt, setHideAmt] = useState(false);
   const anyPrior = members.some(m => Number(m.priorArrears || 0) > 0);
   const stats = useMemo(() => {
-    let req = 0, col = 0, unpaid = 0, wUnpaid = 0, wCount = 0;
+    let req = 0, col = 0, unpaid = 0, wUnpaid = 0, wCount = 0, longUnpaid = 0;
     for (const m of members) {
       const alloc = allocations.get(m.id) || [];
       const wd = isWithdrawn(m);
       if (wd) wCount++;
+      let mUnpaid = 0, mShortYears = 0;
       for (const yr of alloc) {
         if (yr.required <= 0) continue;
         const sf = yr.required - Math.min(yr.allocated, yr.required);
         if (wd) { wUnpaid += sf; continue; }
         req += yr.required; col += Math.min(yr.allocated, yr.required); unpaid += sf;
+        mUnpaid += sf;
+        if (yr.allocated < yr.required) mShortYears++;
       }
+      if (!wd && mShortYears >= 5) longUnpaid += mUnpaid;
     }
-    return { req, col, unpaid, wUnpaid, wCount };
+    return { req, col, unpaid, wUnpaid, wCount, longUnpaid };
   }, [members, allocations]);
 
   if (!members.length) return <EmptyState icon={Users} title="회원이 없습니다" desc="기존장부 가져오기 또는 회원관리 탭에서 회원을 먼저 등록해 주세요." />;
@@ -922,9 +927,9 @@ function StatusGrid({ members, yearRange, allocations, fees, cellMode, setCellMo
   return (
     <div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-        <StatCard label="현 회원 회비 의무" value={`${fmt(stats.req)}원`} />
-        <StatCard label="납입 완료" value={`${fmt(stats.col)}원`} color="text-emerald-600" />
-        <StatCard label="현재 미납액 (현 회원)" value={`${fmt(stats.unpaid)}원`} color="text-rose-600" />
+        <StatCard label="현 회원 회비 의무" value={hideAmt ? '●●●●●' : `${fmt(stats.req)}원`} />
+        <StatCard label="납입 완료" value={hideAmt ? '●●●●●' : `${fmt(stats.col)}원`} color="text-emerald-600" />
+        <StatCard label={hideLong ? "현재 미납액 (장기미납 제외)" : "현재 미납액 (현 회원)"} value={hideAmt ? '●●●●●' : `${fmt(stats.unpaid - (hideLong ? stats.longUnpaid : 0))}원`} color="text-rose-600" />
       </div>
       <div className="flex flex-wrap gap-3 mb-3 text-xs items-center">
         <Legend color="bg-emerald-100 text-emerald-800 border-emerald-300" label="완납" />
@@ -933,6 +938,7 @@ function StatusGrid({ members, yearRange, allocations, fees, cellMode, setCellMo
         <Legend color="bg-gray-100 text-gray-400 border-gray-300" label="의무전/전출/탈회" />
         <Legend color="bg-pink-50 text-pink-700 border-pink-300" label="5년↑ 장기미납" />
         <label className="flex items-center gap-1 cursor-pointer text-gray-600"><input type="checkbox" checked={hideLong} onChange={e => setHideLong(e.target.checked)} />5년↑ 장기미납 숨김{longCount > 0 && <span className="text-pink-600 ml-1">({longCount}명)</span>}</label>
+        <label className="flex items-center gap-1 cursor-pointer text-gray-600"><input type="checkbox" checked={hideAmt} onChange={e => setHideAmt(e.target.checked)} />금액 숨기기</label>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-gray-500">표시:</span>
           <div className="inline-flex rounded-md border border-gray-300 overflow-hidden">
