@@ -1850,5 +1850,66 @@ function EmptyState({ icon: Ic, title, desc }) {
 })();
 </script>
 
+  <script>
+/* 옛 미납장부 UI 표시 보정 · v31 */
+(function () {
+  function applyLedgerUI() {
+    var headings = document.querySelectorAll('h3');
+    var heading = null;
+
+    for (var i = 0; i < headings.length; i++) {
+      if ((headings[i].textContent || '').indexOf('옛 미납장부 가져오기') !== -1) {
+        heading = headings[i];
+        break;
+      }
+    }
+
+    if (!heading) return;
+
+    var card = heading.closest('.bg-white.rounded-lg.border');
+    if (!card) return;
+
+    /* 카드 테두리 */
+    card.style.borderColor = '#f59e0b';
+
+    /* ② 원형 배지 */
+    var badge = heading.parentElement.querySelector('.w-6.h-6');
+    if (badge) {
+      badge.style.backgroundColor = '#f59e0b';
+      badge.style.color = '#ffffff';
+    }
+
+    /* 미납장부 파일 선택 버튼 */
+    var buttons = card.querySelectorAll('button');
+    for (var j = 0; j < buttons.length; j++) {
+      if ((buttons[j].textContent || '').indexOf('미납장부 파일 선택') !== -1) {
+        var btn = buttons[j];
+
+        btn.style.backgroundColor = '#f59e0b';
+        btn.style.color = '#ffffff';
+
+        btn.onmouseenter = function () {
+          this.style.backgroundColor = '#d97706';
+        };
+
+        btn.onmouseleave = function () {
+          this.style.backgroundColor = '#f59e0b';
+        };
+      }
+    }
+  }
+
+  applyLedgerUI();
+
+  var observer = new MutationObserver(function () {
+    applyLedgerUI();
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+})();
+</script>
 </body>
 </html>
