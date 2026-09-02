@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-02 | 옛 미납장부 가져오기 UI 강조 디자인 적용 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v31 · 업데이트 2026-09-02</div>
+<!-- BUILD_DATE: 2026-09-02 17:21 KST | 상단 문자 보내기 메뉴 복구 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v32 · 업데이트 2026-09-02 17:21</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -1834,6 +1834,8 @@ function EmptyState({ icon: Ic, title, desc }) {
       });
     };
   }
+  window.cfmShowKakao=showModal;
+  window.cfmBuildKakaoText=buildText;
   document.addEventListener('click',function(e){
     var td=e.target.closest&&e.target.closest('td'); if(!td)return;
     if(td.style.left!=='118px')return;
@@ -1847,6 +1849,36 @@ function EmptyState({ icon: Ic, title, desc }) {
       if(tds[i].style.left==='118px'){ tds[i].style.cursor='pointer'; if(!tds[i].title)tds[i].title='클릭하면 카톡 회비 문구가 생성됩니다'; }
     }
   },900);
+})();
+</script>
+
+<script>
+/* 상단 문자 보내기 메뉴 · v32 */
+(function(){
+  function members(){try{return JSON.parse(localStorage.getItem('mfm-members-v2')||'[]').filter(function(m){return !m.leaveDate;});}catch(e){return [];}}
+  function close(){var ov=document.getElementById('msg-list-ov');if(ov)ov.remove();}
+  function openList(){
+    close();
+    var ov=document.createElement('div');ov.id='msg-list-ov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px';
+    var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;max-width:620px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.3)';
+    box.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding:14px 16px"><b>문자 보내기</b><button id="msg-list-x" style="border:0;background:none;font-size:22px;cursor:pointer;color:#6b7280">×</button></div><div style="padding:14px 16px"><input id="msg-list-q" placeholder="이름/등록번호/입금자명 검색" style="width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;font-size:14px"></div><div id="msg-list-body" style="overflow:auto;padding:0 16px 16px"></div>';
+    ov.appendChild(box);document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)close();};document.getElementById('msg-list-x').onclick=close;
+    var q=document.getElementById('msg-list-q'),body=document.getElementById('msg-list-body');
+    function draw(){
+      var s=(q.value||'').trim().toLowerCase(),list=members().filter(function(m){return ((m.name||'')+' '+(m.regNo||'')+' '+(m.depositorName||'')).toLowerCase().indexOf(s)!==-1;}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'','ko');});
+      body.innerHTML='';
+      if(!list.length){body.innerHTML='<div style="padding:28px;text-align:center;color:#9ca3af;border:1px solid #e5e7eb;border-radius:8px">표시할 회원이 없습니다</div>';return;}
+      list.forEach(function(m){var row=document.createElement('button');row.type='button';row.style.cssText='width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;background:#fff;border:0;border-bottom:1px solid #f3f4f6;text-align:left;cursor:pointer';row.innerHTML='<span><b>'+String(m.name||'').replace(/</g,'&lt;')+'</b><small style="margin-left:10px;color:#9ca3af">'+String(m.regNo||'-').replace(/</g,'&lt;')+'</small></span><span style="color:#4f46e5;font-size:13px;font-weight:700">문구 만들기 ›</span>';row.onclick=function(){close();if(window.cfmShowKakao)window.cfmShowKakao(m);};body.appendChild(row);});
+    }
+    q.oninput=draw;draw();setTimeout(function(){q.focus();},0);
+  }
+  function ensure(){
+    if(document.getElementById('cfm-msg-menu'))return;
+    var nav=document.querySelector('.max-w-7xl.mx-auto.px-4.flex.gap-1.overflow-x-auto');if(!nav)return;
+    var btn=document.createElement('button');btn.id='cfm-msg-menu';btn.type='button';btn.className='flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap border-transparent text-gray-600 hover:text-gray-900';btn.innerHTML='<span aria-hidden="true">✉</span> 문자 보내기';btn.onclick=openList;
+    var ref=Array.prototype.find.call(nav.querySelectorAll('button'),function(b){return (b.textContent||'').indexOf('기존장부 가져오기')!==-1;});nav.insertBefore(btn,ref||null);
+  }
+  ensure();new MutationObserver(ensure).observe(document.getElementById('root'),{childList:true,subtree:true});
 })();
 </script>
 
