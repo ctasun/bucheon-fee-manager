@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-02 16:38 KST | 회원 클릭 시 카톡 회비 문구 생성·복사 기능 추가 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v30 · 업데이트 2026-09-02 16:38 (KST) · 카톡 회비 문구 기능 추가</div>
+<!-- BUILD_DATE: 2026-09-02 | 옛 미납장부 가져오기 UI 강조 디자인 적용 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v31 · 업데이트 2026-09-02 · 옛 미납장부 UI 개선</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -1279,11 +1279,25 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
       </div>
 
       {/* Ledger */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-amber-600 text-white text-sm flex items-center justify-center font-bold">②</span><h3 className="font-semibold">옛 미납장부 가져오기 <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">최초 1회만</span></h3></div>
-        <p className="text-sm text-gray-600 mb-3">2010이전 미수금액 + 연도별 미납액이 있는 장부입니다. 2021년 이후는 통장 기준이라 자동 제외됩니다.</p>
-        <input ref={ledgerRef} type="file" accept=".xlsx,.xls,.csv" onChange={handle(parseLedger)} className="hidden" />
-        <button onClick={() => ledgerRef.current?.click()} className="px-4 py-2 bg-amber-600 text-white rounded-md text-sm hover:bg-amber-700"><Upload className="w-4 h-4 inline mr-1" /> 미납장부 파일 선택</button>
+<div className="bg-white rounded-lg border border-yellow-400 p-4">
+  <div className="flex items-center gap-2 mb-2">
+    <span className="w-6 h-6 rounded-full bg-yellow-500 text-white text-sm flex items-center justify-center font-bold">②</span>
+    <h3 className="font-semibold">
+      옛 미납장부 가져오기
+      <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">최초 1회만</span>
+    </h3>
+  </div>
+  <p className="text-sm text-gray-600 mb-3">
+    2010이전 미수금액 + 연도별 미납액이 있는 장부입니다. 2021년 이후는 통장 기준이라 자동 제외됩니다.
+  </p>
+  <input ref={ledgerRef} type="file" accept=".xlsx,.xls,.csv" onChange={handle(parseLedger)} className="hidden" />
+  <button
+    onClick={() => ledgerRef.current?.click()}
+    className="px-4 py-2 bg-yellow-500 text-white rounded-md text-sm hover:bg-yellow-600"
+  >
+    <Upload className="w-4 h-4 inline mr-1" /> 미납장부 파일 선택
+  </button>
+      
         {ledgerPrev && (
           <div className="mt-3 border border-amber-200 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
