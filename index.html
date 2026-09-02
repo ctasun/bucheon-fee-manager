@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-02 17:21 KST | 상단 문자 보내기 메뉴 복구 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v32 · 업데이트 2026-09-02 17:21</div>
+<!-- BUILD_DATE: 2026-09-02 18:20 KST | 회원명단 연락처 반영 및 본인 입금내역 조회자료 자동저장 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v33 · 업데이트 2026-09-02 18:20</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -681,10 +681,10 @@ export default function App() {
         const noteVal = r.reason ? `최신명단·${r.reason}` : '최신명단';
         if (idx >= 0) {
           const ex = base[idx];
-          base[idx] = { ...ex, regNo: reg || ex.regNo, name: r.name || ex.name, society: r.society || ex.society, joinDate: r.joinDate || ex.joinDate, leaveDate: r.leaveDate, depositorName: ex.depositorName || r.name, note: r.reason ? noteVal : ex.note, review: !!r.review };
+          base[idx] = { ...ex, regNo: reg || ex.regNo, name: r.name || ex.name, phone: r.phone || ex.phone || '', society: r.society || ex.society, joinDate: r.joinDate || ex.joinDate, leaveDate: r.leaveDate, depositorName: ex.depositorName || r.name, note: r.reason ? noteVal : ex.note, review: !!r.review };
           updated++;
         } else {
-          base.push({ id: uid(), aliases: [], regNo: reg, name: r.name, depositorName: r.name, society: r.society||'', phone: '', joinDate: r.joinDate||'', leaveDate: r.leaveDate||'', priorArrears: 0, note: noteVal, review: !!r.review });
+          base.push({ id: uid(), aliases: [], regNo: reg, name: r.name, depositorName: r.name, society: r.society||'', phone: r.phone||'', joinDate: r.joinDate||'', leaveDate: r.leaveDate||'', priorArrears: 0, note: noteVal, review: !!r.review });
           if (reg) byReg.set(reg, base.length - 1);
           if (r.name) byName.set(r.name, base.length - 1);
           added++;
@@ -741,6 +741,23 @@ export default function App() {
     return wb;
   };
   const exportAll = () => { XLSX.writeFile(buildWorkbook(), `회비관리_${today()}.xlsx`); };
+  const buildLookupData = () => ({
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    members: members.filter(m => !isWithdrawn(m)).map(m => {
+      const phoneDigits = String(m.phone || '').replace(/[^0-9]/g, '');
+      return {
+        regNo: String(m.regNo || '').trim(),
+        phoneLast4: phoneDigits.length >= 4 ? phoneDigits.slice(-4) : '',
+        name: String(m.name || '').trim(),
+        payments: tx.filter(t => t.memberId === m.id).map(t => ({
+          date: String(t.date || ''),
+          time: String(t.time || ''),
+          amount: Number(t.amount || 0),
+        })).sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)),
+      };
+    }).filter(m => m.regNo && m.phoneLast4),
+  });
   const pushToDrive = async (manual) => {
     const url = (config.relayUrl||'').trim();
     if (!url) { if (manual) setSyncMsg('중계 URL이 비어 있습니다. 회비설정 탭에서 입력하세요.'); return; }
@@ -748,7 +765,7 @@ export default function App() {
     try {
       const b64 = XLSX.write(buildWorkbook(), { bookType: 'xlsx', type: 'base64' });
       setSyncMsg('저장 중…');
-      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: (config.relayToken||'').trim(), xlsxBase64: b64, filename: `회비미납현황_${today()}.xlsx` }) });
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: (config.relayToken||'').trim(), xlsxBase64: b64, filename: `회비미납현황_${today()}.xlsx`, lookupData: buildLookupData() }) });
       const j = await r.json();
       if (j && j.ok) { setLastSync(new Date().toISOString()); setSyncMsg('드라이브 저장 완료'); }
       else { setSyncMsg('저장 실패: ' + (j && j.error ? j.error : '알 수 없음')); }
@@ -1136,7 +1153,7 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
     const above = (data[hi-1]||[]).map(c => String(c).trim());
     const headers = hrow.map((h, i) => h || above[i] || '');
     const col = (keys) => headers.findIndex(h => keys.some(k => h.includes(k)));
-    const nameCol = col(['성명','이름']), regCol = col(['등록번호']), socCol = headers.findIndex((h,idx) => idx !== nameCol && !h.includes('성명') && !h.includes('이름') && ['지역회','지역세무사회','세무사회'].some(k => h.includes(k))), joinCol = col(['개업','전입']), leaveCol = col(['폐업','전출']);
+    const nameCol = col(['성명','이름']), regCol = col(['등록번호']), phoneCol = col(['연락처','전화번호','휴대전화','휴대폰','핸드폰']), socCol = headers.findIndex((h,idx) => idx !== nameCol && !h.includes('성명') && !h.includes('이름') && ['지역회','지역세무사회','세무사회'].some(k => h.includes(k))), joinCol = col(['개업','전입']), leaveCol = col(['폐업','전출']);
     const priorCols = []; headers.forEach((h, i) => { if (h.includes('이전') || h.includes('이후')) priorCols.push(i); });
     const yearCols = []; headers.forEach((h, i) => { if (priorCols.includes(i)) return; const m = h.match(/(20\d\d)/); if (m) yearCols.push({ year: Number(m[1]), idx: i }); });
     if (nameCol < 0) { alert('성명 컬럼을 찾을 수 없습니다.'); return; }
@@ -1220,6 +1237,7 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
       rows.push({
         name,
         regNo: regCol>=0?String(row[regCol]||'').trim():'',
+        phone: phoneCol>=0?String(row[phoneCol]||'').trim():'',
         society: socCol>=0?String(row[socCol]||'').trim():'',
         joinDate,
         leaveDate: cls.withdrawn ? leaveDate : '',
@@ -1941,6 +1959,151 @@ function EmptyState({ icon: Ic, title, desc }) {
     childList: true,
     subtree: true
   });
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* 회원명단 연락처 반영 + 회원조회용 최소자료 전송 · v33 */
+(function () {
+  var MEMBER_KEY = 'mfm-members-v2';
+  var TX_KEY = 'mfm-tx-v2';
+  var pendingRoster = null;
+
+  function digits(value) {
+    return String(value == null ? '' : value).replace(/[^0-9]/g, '');
+  }
+
+  function readJson(key, fallback) {
+    try {
+      var value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function isCurrentMember(member) {
+    if (!member.leaveDate) return true;
+    var leave = new Date(member.leaveDate);
+    return isNaN(leave.getTime()) || leave > new Date();
+  }
+
+  function makeLookupData() {
+    var members = readJson(MEMBER_KEY, []);
+    var transactions = readJson(TX_KEY, []);
+    return {
+      version: 1,
+      generatedAt: new Date().toISOString(),
+      members: members.filter(isCurrentMember).map(function (member) {
+        var phoneDigits = digits(member.phone);
+        return {
+          regNo: String(member.regNo || '').trim(),
+          phoneLast4: phoneDigits.length >= 4 ? phoneDigits.slice(-4) : '',
+          name: String(member.name || '').trim(),
+          payments: transactions
+            .filter(function (tx) { return tx.memberId === member.id; })
+            .map(function (tx) {
+              return {
+                date: String(tx.date || ''),
+                time: String(tx.time || ''),
+                amount: Number(tx.amount || 0)
+              };
+            })
+            .sort(function (a, b) {
+              return (a.date + ' ' + a.time).localeCompare(b.date + ' ' + b.time);
+            })
+        };
+      }).filter(function (member) {
+        return member.regNo && member.phoneLast4;
+      })
+    };
+  }
+
+  var originalFetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    if (init && String(init.method || '').toUpperCase() === 'POST' && typeof init.body === 'string') {
+      try {
+        var body = JSON.parse(init.body);
+        if (body && body.xlsxBase64 && Object.prototype.hasOwnProperty.call(body, 'token')) {
+          body.lookupData = makeLookupData();
+          init = Object.assign({}, init, { body: JSON.stringify(body) });
+        }
+      } catch (e) {}
+    }
+    return originalFetch(input, init);
+  };
+
+  async function parseRosterContacts(file) {
+    if (!window.XLSX || !file) return null;
+    var workbook = XLSX.read(await file.arrayBuffer(), { cellDates: true });
+    var data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, defval: '' });
+    var headerIndex = -1;
+    for (var i = 0; i < Math.min(data.length, 15); i++) {
+      var headerText = (data[i] || []).map(String).join(' ');
+      if ((headerText.indexOf('성명') !== -1 || headerText.indexOf('이름') !== -1) && headerText.indexOf('등록번호') !== -1) {
+        headerIndex = i;
+        break;
+      }
+    }
+    if (headerIndex < 0) return null;
+    var headers = (data[headerIndex] || []).map(function (cell) { return String(cell).trim(); });
+    function column(keys) {
+      return headers.findIndex(function (header) {
+        return keys.some(function (key) { return header.indexOf(key) !== -1; });
+      });
+    }
+    var regCol = column(['등록번호']);
+    var nameCol = column(['성명', '이름']);
+    var phoneCol = column(['연락처', '전화번호', '휴대전화', '휴대폰', '핸드폰']);
+    if (phoneCol < 0 || (regCol < 0 && nameCol < 0)) return null;
+    var contacts = [];
+    for (var rowIndex = headerIndex + 1; rowIndex < data.length; rowIndex++) {
+      var row = data[rowIndex] || [];
+      var phone = String(row[phoneCol] || '').trim();
+      var regNo = regCol >= 0 ? String(row[regCol] || '').trim() : '';
+      var name = nameCol >= 0 ? String(row[nameCol] || '').trim() : '';
+      if (digits(phone).length >= 4 && (regNo || name)) contacts.push({ regNo: regNo, name: name, phone: phone });
+    }
+    return contacts;
+  }
+
+  document.addEventListener('change', function (event) {
+    var input = event.target;
+    if (!input || input.tagName !== 'INPUT' || input.type !== 'file' || !input.files || !input.files[0]) return;
+    var card = input.closest('.bg-white.rounded-lg.border');
+    var title = card ? (card.textContent || '') : '';
+    if (title.indexOf('최신 회원명단') === -1) return;
+    pendingRoster = parseRosterContacts(input.files[0]);
+  }, true);
+
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest && event.target.closest('button');
+    if (!button || (button.textContent || '').trim() !== '이 명단으로 반영' || !pendingRoster) return;
+    var contactsPromise = pendingRoster;
+    pendingRoster = null;
+    setTimeout(async function () {
+      var contacts = await contactsPromise;
+      if (!contacts || !contacts.length) return;
+      var members = readJson(MEMBER_KEY, []);
+      var byReg = new Map();
+      var byName = new Map();
+      contacts.forEach(function (contact) {
+        if (contact.regNo) byReg.set(contact.regNo, contact.phone);
+        if (contact.name) byName.set(contact.name, contact.phone);
+      });
+      var changed = 0;
+      members = members.map(function (member) {
+        var phone = byReg.get(String(member.regNo || '').trim()) || byName.get(String(member.name || '').trim());
+        if (!phone || phone === member.phone) return member;
+        changed++;
+        return Object.assign({}, member, { phone: phone });
+      });
+      if (!changed) return;
+      localStorage.setItem(MEMBER_KEY, JSON.stringify(members));
+      alert('회원명단의 연락처 ' + changed + '건을 함께 반영했습니다.');
+      location.reload();
+    }, 900);
+  }, true);
 })();
 </script>
 </body>
