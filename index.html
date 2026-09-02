@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-02 18:20 KST | 회원명단 연락처 반영 및 본인 입금내역 조회자료 자동저장 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v33 · 업데이트 2026-09-02 18:20</div>
+<!-- BUILD_DATE: 2026-09-03 00:09 KST | 통장 업로드·마지막 거래 시각 구분 및 회원명단 엑셀 순서 고정 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v35 · 업데이트 2026-09-03 00:09</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -690,7 +690,17 @@ export default function App() {
           added++;
         }
       }
-      return base;
+      // 납입현황 순번은 최신 회원명단 엑셀의 행 순서를 그대로 따른다.
+      // 명단에 없는 기존 자료는 삭제하지 않고 끝에 보존한다.
+      const ordered = [];
+      const seen = new Set();
+      for (const r of rows) {
+        const reg = String(r.regNo || '').trim();
+        const member = base.find(m => (reg && String(m.regNo || '').trim() === reg) || (!reg && r.name && String(m.name || '').trim() === String(r.name).trim()));
+        if (member && !seen.has(member.id)) { ordered.push(member); seen.add(member.id); }
+      }
+      for (const member of base) if (!seen.has(member.id)) ordered.push(member);
+      return ordered;
     });
     setRosterMeta({ uploadedAt: new Date().toISOString(), count: rows.length });
     return { added, updated };
@@ -1874,13 +1884,19 @@ function EmptyState({ icon: Ic, title, desc }) {
 /* 상단 문자 보내기 메뉴 · v32 */
 (function(){
   function members(){try{return JSON.parse(localStorage.getItem('mfm-members-v2')||'[]').filter(function(m){return !m.leaveDate;});}catch(e){return [];}}
+  function config(){try{return JSON.parse(localStorage.getItem('mfm-config-v2')||'{}');}catch(e){return {};}}
+  function lookupMessage(){
+    var url=String(config().relayUrl||'').trim()||'[회원 조회 링크]';
+    return '[부천지역세무사회]\n\n안녕하세요. 부천지역세무사회 재무간사 김선영 세무사입니다.\n\n회비 납부 내역을 확인하실 수 있는 링크를 안내드립니다.\n\n아래 링크를 클릭한 후 등록번호와 휴대전화 번호 뒤 4자리를 입력해 주세요.\n\n[회부납부내역조회(바로가기클릭)]\n'+url+'\n\n지역회 활동에 적극적으로 동참해 주셔서 항상 감사드립니다.\n\n문의: 부천지역세무사회';
+  }
   function close(){var ov=document.getElementById('msg-list-ov');if(ov)ov.remove();}
   function openList(){
     close();
     var ov=document.createElement('div');ov.id='msg-list-ov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px';
     var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;max-width:620px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.3)';
-    box.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding:14px 16px"><b>문자 보내기</b><button id="msg-list-x" style="border:0;background:none;font-size:22px;cursor:pointer;color:#6b7280">×</button></div><div style="padding:14px 16px"><input id="msg-list-q" placeholder="이름/등록번호/입금자명 검색" style="width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;font-size:14px"></div><div id="msg-list-body" style="overflow:auto;padding:0 16px 16px"></div>';
+    box.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding:14px 16px"><b>문자 보내기</b><button id="msg-list-x" style="border:0;background:none;font-size:22px;cursor:pointer;color:#6b7280">×</button></div><div style="padding:14px 16px;border-bottom:1px solid #e5e7eb"><label for="msg-guide" style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:7px">회원 조회 안내문</label><textarea id="msg-guide" readonly style="width:100%;height:180px;border:1px solid #d1d5db;border-radius:8px;padding:11px 12px;font-size:14px;line-height:1.55;font-family:inherit;resize:vertical"></textarea><button id="msg-guide-copy" type="button" style="width:100%;margin-top:8px;padding:11px;background:#173f72;color:#fff;border:0;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">안내문 복사</button></div><div style="padding:14px 16px"><input id="msg-list-q" placeholder="이름/등록번호/입금자명 검색" style="width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;font-size:14px"></div><div id="msg-list-body" style="overflow:auto;padding:0 16px 16px"></div>';
     ov.appendChild(box);document.body.appendChild(ov);ov.onclick=function(e){if(e.target===ov)close();};document.getElementById('msg-list-x').onclick=close;
+    var guide=document.getElementById('msg-guide'),guideCopy=document.getElementById('msg-guide-copy');guide.value=lookupMessage();guideCopy.onclick=function(){navigator.clipboard.writeText(guide.value).then(function(){guideCopy.textContent='✓ 안내문이 복사됐습니다';guideCopy.style.background='#18704c';setTimeout(function(){guideCopy.textContent='안내문 복사';guideCopy.style.background='#173f72';},1500);});};
     var q=document.getElementById('msg-list-q'),body=document.getElementById('msg-list-body');
     function draw(){
       var s=(q.value||'').trim().toLowerCase(),list=members().filter(function(m){return ((m.name||'')+' '+(m.regNo||'')+' '+(m.depositorName||'')).toLowerCase().indexOf(s)!==-1;}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'','ko');});
@@ -1967,6 +1983,8 @@ function EmptyState({ icon: Ic, title, desc }) {
 (function () {
   var MEMBER_KEY = 'mfm-members-v2';
   var TX_KEY = 'mfm-tx-v2';
+  var FEE_KEY = 'mfm-fees-v2';
+  var UPLOAD_KEY = 'mfm-upload-v2';
   var pendingRoster = null;
 
   function digits(value) {
@@ -1988,25 +2006,105 @@ function EmptyState({ icon: Ic, title, desc }) {
     return isNaN(leave.getTime()) || leave > new Date();
   }
 
+  function yearOf(value) {
+    return value ? new Date(value).getFullYear() : new Date().getFullYear();
+  }
+
+  function monthOf(value) {
+    return value ? new Date(value).getMonth() + 1 : 1;
+  }
+
+  function defaultFee(year) {
+    return year >= 2020 && year <= 2022 ? 100000 : 200000;
+  }
+
+  function feeForYear(year, fees) {
+    var fee = (fees || []).find(function (item) { return Number(item.year) === year; });
+    return fee ? Number(fee.amount || 0) : defaultFee(year);
+  }
+
+  function requiredFor(member, year, fees) {
+    var base = feeForYear(year, fees);
+    if (!base || year <= 2020 || year > new Date().getFullYear()) return 0;
+    var joinYear = yearOf(member.joinDate);
+    if (member.joinDate && year < joinYear) return 0;
+    if (member.leaveDate && year > yearOf(member.leaveDate)) return 0;
+    if (member.joinDate && year === joinYear && monthOf(member.joinDate) >= 7) return Math.round(base / 2);
+    return base;
+  }
+
+  function allocateForLookup(member, memberTransactions, fees, upTo) {
+    var startYear = Math.max(yearOf(member.joinDate), 2011);
+    var endYear = member.leaveDate ? Math.min(upTo, yearOf(member.leaveDate) - 1) : upTo;
+    var years = [];
+    var prior = Number(member.priorArrears || 0);
+    if (prior > 0) years.push({ year: 'prior', label: '2020년까지 이월', required: prior, allocated: 0, payments: [], isPrior: true });
+    for (var year = startYear; year <= endYear; year++) {
+      var required = requiredFor(member, year, fees);
+      if (required > 0) years.push({ year: year, label: year + '년도', required: required, allocated: 0, payments: [], isPrior: false });
+    }
+    var sorted = memberTransactions.slice().sort(function (a, b) {
+      return (String(a.date || '') + ' ' + String(a.time || '')).localeCompare(String(b.date || '') + ' ' + String(b.time || ''));
+    });
+    sorted.forEach(function (transaction) {
+      var remaining = Number(transaction.amount || 0);
+      years.forEach(function (item) {
+        if (remaining <= 0 || item.allocated >= item.required) return;
+        var applied = Math.min(remaining, item.required - item.allocated);
+        item.allocated += applied;
+        item.payments.push({
+          txId: transaction.id,
+          date: String(transaction.date || ''),
+          time: String(transaction.time || ''),
+          depositorName: String(transaction.depositorName || ''),
+          fullAmount: Number(transaction.amount || 0),
+          appliedAmount: applied
+        });
+        remaining -= applied;
+      });
+    });
+    return years.map(function (item) {
+      var remaining = Math.max(0, item.required - item.allocated);
+      return {
+        year: item.year,
+        label: item.label,
+        required: item.required,
+        allocated: Math.min(item.required, item.allocated),
+        remaining: remaining,
+        status: remaining <= 0 ? 'paid' : item.allocated > 0 ? 'partial' : 'unpaid',
+        payments: item.payments
+      };
+    });
+  }
+
   function makeLookupData() {
     var members = readJson(MEMBER_KEY, []);
     var transactions = readJson(TX_KEY, []);
+    var fees = readJson(FEE_KEY, []);
+    var uploadMeta = readJson(UPLOAD_KEY, null) || {};
+    var maxFeeYear = (fees || []).reduce(function (max, fee) { return Math.max(max, Number(fee.year || 0)); }, 0);
+    var upTo = Math.max(new Date().getFullYear(), maxFeeYear, 2011);
     return {
-      version: 1,
+      version: 2,
       generatedAt: new Date().toISOString(),
+      bankLastTransactionAt: String(uploadMeta.maxDate || ''),
+      bankFileUploadedAt: String(uploadMeta.uploadedAt || ''),
       members: members.filter(isCurrentMember).map(function (member) {
         var phoneDigits = digits(member.phone);
+        var memberTransactions = transactions.filter(function (tx) { return tx.memberId === member.id; });
+        var years = allocateForLookup(member, memberTransactions, fees, upTo);
         return {
           regNo: String(member.regNo || '').trim(),
           phoneLast4: phoneDigits.length >= 4 ? phoneDigits.slice(-4) : '',
           name: String(member.name || '').trim(),
-          payments: transactions
-            .filter(function (tx) { return tx.memberId === member.id; })
-            .map(function (tx) {
+          totalArrears: years.reduce(function (sum, item) { return sum + Number(item.remaining || 0); }, 0),
+          years: years,
+          payments: memberTransactions.map(function (tx) {
               return {
                 date: String(tx.date || ''),
                 time: String(tx.time || ''),
-                amount: Number(tx.amount || 0)
+                amount: Number(tx.amount || 0),
+                depositorName: String(tx.depositorName || '')
               };
             })
             .sort(function (a, b) {
@@ -2017,6 +2115,37 @@ function EmptyState({ icon: Ic, title, desc }) {
         return member.regNo && member.phoneLast4;
       })
     };
+  }
+
+  function formatAdminDateTime(value) {
+    if (!value) return '기록 없음';
+    var source = String(value);
+    var year, month, day, hour, minute;
+    if (/T|Z|[+-]\d\d:\d\d$/.test(source)) {
+      var date = new Date(source);
+      if (isNaN(date.getTime())) return source;
+      year = date.getFullYear(); month = date.getMonth() + 1; day = date.getDate();
+      hour = date.getHours(); minute = date.getMinutes();
+    } else {
+      var text = source.replace('T', ' ').slice(0, 19);
+      var match = text.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+      if (!match) return text;
+      year = Number(match[1]); month = Number(match[2]); day = Number(match[3]);
+      hour = Number(match[4]); minute = Number(match[5]);
+    }
+    var ampm = hour < 12 ? '오전' : '오후';
+    var displayHour = hour % 12 || 12;
+    return year + '. ' + month + '. ' + day + '. ' + ampm + ' ' + displayHour + '시' + (minute ? ' ' + minute + '분' : '');
+  }
+
+  function applyBankTimeLabels() {
+    var uploadMeta = readJson(UPLOAD_KEY, null) || {};
+    var spans = document.querySelectorAll('span');
+    for (var index = 0; index < spans.length; index++) {
+      if ((spans[index].textContent || '').indexOf('통장 자료 최종일시:') === -1) continue;
+      spans[index].innerHTML = '🏦 통장파일 업로드 · <b class="text-gray-800">' + formatAdminDateTime(uploadMeta.uploadedAt) + '</b>'
+        + ' <span class="text-gray-400">　통장 마지막 거래 · <b class="text-gray-800">' + formatAdminDateTime(uploadMeta.maxDate) + '</b></span>';
+    }
   }
 
   var originalFetch = window.fetch.bind(window);
@@ -2062,7 +2191,7 @@ function EmptyState({ icon: Ic, title, desc }) {
       var phone = String(row[phoneCol] || '').trim();
       var regNo = regCol >= 0 ? String(row[regCol] || '').trim() : '';
       var name = nameCol >= 0 ? String(row[nameCol] || '').trim() : '';
-      if (digits(phone).length >= 4 && (regNo || name)) contacts.push({ regNo: regNo, name: name, phone: phone });
+      if (regNo || name) contacts.push({ regNo: regNo, name: name, phone: phone });
     }
     return contacts;
   }
@@ -2085,25 +2214,39 @@ function EmptyState({ icon: Ic, title, desc }) {
       var contacts = await contactsPromise;
       if (!contacts || !contacts.length) return;
       var members = readJson(MEMBER_KEY, []);
-      var byReg = new Map();
-      var byName = new Map();
-      contacts.forEach(function (contact) {
-        if (contact.regNo) byReg.set(contact.regNo, contact.phone);
-        if (contact.name) byName.set(contact.name, contact.phone);
+      var memberByReg = new Map();
+      var memberByName = new Map();
+      members.forEach(function (member) {
+        var regNo = String(member.regNo || '').trim();
+        var name = String(member.name || '').trim();
+        if (regNo) memberByReg.set(regNo, member);
+        if (name) memberByName.set(name, member);
       });
+      var ordered = [];
+      var seen = new Set();
       var changed = 0;
-      members = members.map(function (member) {
-        var phone = byReg.get(String(member.regNo || '').trim()) || byName.get(String(member.name || '').trim());
-        if (!phone || phone === member.phone) return member;
-        changed++;
-        return Object.assign({}, member, { phone: phone });
+      contacts.forEach(function (contact) {
+        var member = (contact.regNo && memberByReg.get(contact.regNo)) || (contact.name && memberByName.get(contact.name));
+        if (!member || seen.has(member.id)) return;
+        if (contact.phone && contact.phone !== member.phone) {
+          member = Object.assign({}, member, { phone: contact.phone });
+          changed++;
+        }
+        ordered.push(member);
+        seen.add(member.id);
       });
-      if (!changed) return;
-      localStorage.setItem(MEMBER_KEY, JSON.stringify(members));
-      alert('회원명단의 연락처 ' + changed + '건을 함께 반영했습니다.');
+      members.forEach(function (member) {
+        if (!seen.has(member.id)) ordered.push(member);
+      });
+      var orderChanged = ordered.some(function (member, index) { return !members[index] || members[index].id !== member.id; });
+      if (!changed && !orderChanged) return;
+      localStorage.setItem(MEMBER_KEY, JSON.stringify(ordered));
+      alert('회원명단의 엑셀 행 순서를 그대로 반영했습니다.' + (changed ? ' 연락처 ' + changed + '건도 함께 반영했습니다.' : ''));
       location.reload();
     }, 900);
   }, true);
+
+  setInterval(applyBankTimeLabels, 800);
 })();
 </script>
 </body>
