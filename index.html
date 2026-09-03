@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-03 00:09 KST | 통장 업로드·마지막 거래 시각 구분 및 회원명단 엑셀 순서 고정 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v35 · 업데이트 2026-09-03 00:09</div>
+<!-- BUILD_DATE: 2026-09-03 11:39 KST | 회원 조회 화면·3회 오류 잠금·관리자 잠금 해제 반영 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v36 · 업데이트 2026-09-03 11:39</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -1986,6 +1986,23 @@ function EmptyState({ icon: Ic, title, desc }) {
   var FEE_KEY = 'mfm-fees-v2';
   var UPLOAD_KEY = 'mfm-upload-v2';
   var pendingRoster = null;
+  var PRESET_DEPOSITOR_ALIASES = {
+    '이창숙': ['세무법인비펌'],
+    '김복곤': ['세무법인성산부천2지점'],
+    '박인수': ['드림세무법인부천지점'],
+    '심기태': ['세무법인성산부천1지점'],
+    '안병선': ['세무법인성산부천3지점', '세무법인성산부천3지'],
+    '이영석': ['세무법인세담'],
+    '김용삼': ['세무법인스타택스'],
+    '정귀수': ['세무법인중산4지점'],
+    '황만순': ['세무법인택스원 부천'],
+    '박재정': ['세무법인하누리부천제4지점'],
+    '노승안': ['세무법인화인부천지점'],
+    '신기철': ['정안세무법인', '정안세무법인(신기철'],
+    '박승진': ['청록세무법인(부천)'],
+    '이기진': ['하늘세무법인부천'],
+    '홍정표': ['현대세무법인']
+  };
 
   function digits(value) {
     return String(value == null ? '' : value).replace(/[^0-9]/g, '');
@@ -1998,6 +2015,22 @@ function EmptyState({ icon: Ic, title, desc }) {
     } catch (e) {
       return fallback;
     }
+  }
+
+  function mergePresetDepositorAliases(members) {
+    var changed = 0;
+    var mergedMembers = (members || []).map(function (member) {
+      var presets = PRESET_DEPOSITOR_ALIASES[String(member.name || '').trim()];
+      if (!presets || !presets.length) return member;
+      var aliases = Array.isArray(member.aliases) ? member.aliases.slice() : [];
+      presets.forEach(function (alias) {
+        if (aliases.indexOf(alias) === -1) aliases.push(alias);
+      });
+      if (aliases.length === (Array.isArray(member.aliases) ? member.aliases.length : 0)) return member;
+      changed++;
+      return Object.assign({}, member, { aliases: aliases });
+    });
+    return { members: mergedMembers, changed: changed };
   }
 
   function isCurrentMember(member) {
@@ -2183,12 +2216,15 @@ function EmptyState({ icon: Ic, title, desc }) {
     }
     var regCol = column(['등록번호']);
     var nameCol = column(['성명', '이름']);
-    var phoneCol = column(['연락처', '전화번호', '휴대전화', '휴대폰', '핸드폰']);
-    if (phoneCol < 0 || (regCol < 0 && nameCol < 0)) return null;
+    var mobileCol = column(['휴대전화', '휴대폰', '핸드폰']);
+    var fallbackPhoneCol = column(['전화번호', '연락처']);
+    if (mobileCol < 0 && fallbackPhoneCol < 0 || (regCol < 0 && nameCol < 0)) return null;
     var contacts = [];
     for (var rowIndex = headerIndex + 1; rowIndex < data.length; rowIndex++) {
       var row = data[rowIndex] || [];
-      var phone = String(row[phoneCol] || '').trim();
+      var mobile = mobileCol >= 0 ? String(row[mobileCol] || '').trim() : '';
+      var fallbackPhone = fallbackPhoneCol >= 0 ? String(row[fallbackPhoneCol] || '').trim() : '';
+      var phone = mobile || fallbackPhone;
       var regNo = regCol >= 0 ? String(row[regCol] || '').trim() : '';
       var name = nameCol >= 0 ? String(row[nameCol] || '').trim() : '';
       if (regNo || name) contacts.push({ regNo: regNo, name: name, phone: phone });
@@ -2238,15 +2274,156 @@ function EmptyState({ icon: Ic, title, desc }) {
       members.forEach(function (member) {
         if (!seen.has(member.id)) ordered.push(member);
       });
+      var presetResult = mergePresetDepositorAliases(ordered);
+      ordered = presetResult.members;
       var orderChanged = ordered.some(function (member, index) { return !members[index] || members[index].id !== member.id; });
-      if (!changed && !orderChanged) return;
+      if (!changed && !presetResult.changed && !orderChanged) return;
       localStorage.setItem(MEMBER_KEY, JSON.stringify(ordered));
-      alert('회원명단의 엑셀 행 순서를 그대로 반영했습니다.' + (changed ? ' 연락처 ' + changed + '건도 함께 반영했습니다.' : ''));
+      alert('회원명단의 엑셀 행 순서를 그대로 반영했습니다.'
+        + (changed ? ' 연락처 ' + changed + '건도 함께 반영했습니다.' : '')
+        + (presetResult.changed ? ' 기본 입금자 별칭 ' + presetResult.changed + '명도 함께 반영했습니다.' : ''));
       location.reload();
     }, 900);
   }, true);
 
+  setTimeout(function () {
+    var members = readJson(MEMBER_KEY, []);
+    if (!members.length) return;
+    var presetResult = mergePresetDepositorAliases(members);
+    if (!presetResult.changed) return;
+    localStorage.setItem(MEMBER_KEY, JSON.stringify(presetResult.members));
+    location.reload();
+  }, 2500);
+
   setInterval(applyBankTimeLabels, 800);
+})();
+</script>
+<script>
+/* 회원 조회 잠금 관리 · v36 */
+(function () {
+  var CONFIG_KEY = 'mfm-config-v2';
+
+  function readConfig() {
+    try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}'); }
+    catch (e) { return {}; }
+  }
+
+  async function lockApi(action, extra) {
+    var config = readConfig();
+    var url = String(config.relayUrl || '').trim();
+    var token = String(config.relayToken || '').trim();
+    if (!url || !token) throw new Error('회비설정에서 중계 URL과 토큰을 먼저 확인해 주세요.');
+    var body = Object.assign({ action: action, token: token }, extra || {});
+    var response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    var data = await response.json();
+    if (!data || !data.ok) throw new Error((data && data.error) || '요청을 처리하지 못했습니다.');
+    return data;
+  }
+
+  function formatTime(value) {
+    if (!value) return '-';
+    var date = new Date(value);
+    if (isNaN(date.getTime())) return String(value);
+    return date.toLocaleString('ko-KR', { hour12: true });
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+    });
+  }
+
+  function createModal() {
+    var overlay = document.createElement('div');
+    overlay.id = 'lookup-lock-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+    overlay.innerHTML = '<section style="width:min(100%,760px);max-height:88vh;overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.24);display:flex;flex-direction:column">'
+      + '<header style="display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid #e5e7eb"><div><b style="font-size:17px">회원 조회 잠금 관리</b><div style="margin-top:3px;color:#6b7280;font-size:12px">회원 이름으로 확인하고 잠금을 해제합니다.</div></div><button id="lookup-lock-close" type="button" style="border:0;background:none;font-size:24px;color:#6b7280;cursor:pointer">×</button></header>'
+      + '<div style="padding:15px 20px;border-bottom:1px solid #e5e7eb;display:flex;gap:8px;flex-wrap:wrap"><input id="lookup-lock-search" placeholder="회원명 또는 등록번호 검색" style="flex:1;min-width:210px;border:1px solid #d1d5db;border-radius:9px;padding:10px 12px;font-size:14px"><button id="lookup-lock-refresh" type="button" style="border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:9px 13px;cursor:pointer">새로고침</button><button id="lookup-lock-unknown" type="button" style="border:1px solid #f59e0b;background:#fffbeb;color:#92400e;border-radius:9px;padding:9px 13px;cursor:pointer">확인 불가 잠금 해제</button><button id="lookup-lock-all" type="button" style="border:1px solid #fca5a5;background:#fff1f2;color:#9f1239;border-radius:9px;padding:9px 13px;cursor:pointer">전체 잠금 해제</button></div>'
+      + '<div id="lookup-lock-status" style="padding:10px 20px;color:#64748b;font-size:13px"></div><div id="lookup-lock-list" style="overflow:auto;padding:0 20px 20px"></div></section>';
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function openLockManager() {
+    var overlay = createModal();
+    var list = overlay.querySelector('#lookup-lock-list');
+    var status = overlay.querySelector('#lookup-lock-status');
+    var search = overlay.querySelector('#lookup-lock-search');
+    var locks = [];
+
+    function render() {
+      var query = search.value.trim().toLowerCase();
+      var filtered = locks.filter(function (item) {
+        return !query || String(item.memberName || '').toLowerCase().includes(query) || String(item.maskedRegNo || '').toLowerCase().includes(query);
+      });
+      if (!filtered.length) {
+        list.innerHTML = '<div style="padding:30px 10px;text-align:center;color:#94a3b8">조회 잠금 내역이 없습니다.</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(function (item) {
+        return '<div style="display:grid;grid-template-columns:minmax(120px,1fr) 100px 170px auto;gap:12px;align-items:center;padding:13px 4px;border-bottom:1px solid #eef2f7">'
+          + '<div><b>' + escapeHtml(item.memberName || '회원 확인 불가') + '</b><div style="margin-top:3px;color:#64748b;font-size:12px">' + escapeHtml(item.maskedRegNo || '-') + '</div></div>'
+          + '<div style="font-size:13px;color:#9f1239">3회 불일치</div><div style="font-size:12px;color:#64748b">' + escapeHtml(formatTime(item.lockedAt)) + '</div>'
+          + '<button class="lookup-lock-release" data-lock-id="' + escapeHtml(item.lockId) + '" type="button" style="border:0;background:#173f72;color:#fff;border-radius:8px;padding:9px 12px;cursor:pointer">잠금 해제</button></div>';
+      }).join('');
+    }
+
+    async function load() {
+      status.textContent = '잠금 내역을 불러오는 중입니다.';
+      try {
+        var data = await lockApi('listLookupLocks');
+        locks = Array.isArray(data.locks) ? data.locks : [];
+        status.textContent = '현재 잠금 ' + locks.length + '건';
+        render();
+      } catch (error) {
+        status.textContent = error.message;
+        list.innerHTML = '';
+      }
+    }
+
+    overlay.querySelector('#lookup-lock-close').onclick = function () { overlay.remove(); };
+    overlay.onclick = function (event) { if (event.target === overlay) overlay.remove(); };
+    search.oninput = render;
+    overlay.querySelector('#lookup-lock-refresh').onclick = load;
+    list.onclick = async function (event) {
+      var button = event.target.closest('.lookup-lock-release');
+      if (!button) return;
+      button.disabled = true;
+      try { await lockApi('unlockLookupLock', { lockId: button.dataset.lockId }); await load(); }
+      catch (error) { status.textContent = error.message; button.disabled = false; }
+    };
+    overlay.querySelector('#lookup-lock-unknown').onclick = async function () {
+      if (!confirm('회원 확인이 되지 않은 조회 잠금을 모두 해제할까요?')) return;
+      try { await lockApi('unlockUnknownLocks'); await load(); } catch (error) { status.textContent = error.message; }
+    };
+    overlay.querySelector('#lookup-lock-all').onclick = async function () {
+      if (!confirm('모든 회원의 조회 잠금을 해제할까요?')) return;
+      try { await lockApi('unlockAllLookupLocks'); await load(); } catch (error) { status.textContent = error.message; }
+    };
+    load();
+  }
+
+  function installButton() {
+    if (document.getElementById('lookup-lock-menu')) return;
+    var nav = Array.from(document.querySelectorAll('div')).find(function (element) {
+      return element.className && String(element.className).includes('overflow-x-auto') && element.textContent.includes('납입현황') && element.textContent.includes('탈회회원');
+    });
+    if (!nav) return;
+    var button = document.createElement('button');
+    button.id = 'lookup-lock-menu';
+    button.type = 'button';
+    button.className = 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap border-transparent text-gray-600 hover:text-gray-900';
+    button.innerHTML = '<span aria-hidden="true">🔒</span> 조회 잠금 관리';
+    button.onclick = openLockManager;
+    nav.appendChild(button);
+  }
+
+  setInterval(installButton, 800);
 })();
 </script>
 </body>

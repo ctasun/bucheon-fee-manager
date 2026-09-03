@@ -1,13 +1,17 @@
 const ACCESS_TOKEN = '여기에_관리프로그램과_같은_토큰을_입력하세요';
 const FOLDER_NAME = '부천세무사회_회비관리_자동저장';
 const LOOKUP_FILE_NAME = '회원조회자료.json';
-const MAX_FAILURES = 5;
-const LOCK_SECONDS = 600;
+const MAX_FAILURES = 3;
+const LOCK_PREFIX = 'LOOKUP_LOCK_';
 
 function doPost(e) {
   try {
     const data = JSON.parse((e.postData && e.postData.contents) || '{}');
     if (!data.token || data.token !== ACCESS_TOKEN) return jsonResponse({ ok: false, error: '인증에 실패했습니다.' });
+    if (data.action === 'listLookupLocks') return jsonResponse({ ok: true, locks: listLookupLocks() });
+    if (data.action === 'unlockLookupLock') return jsonResponse({ ok: unlockLookupLock(data.lockId) });
+    if (data.action === 'unlockUnknownLocks') return jsonResponse({ ok: true, removed: unlockUnknownLocks() });
+    if (data.action === 'unlockAllLookupLocks') return jsonResponse({ ok: true, removed: unlockAllLookupLocks() });
     if (!data.xlsxBase64 || !data.lookupData) return jsonResponse({ ok: false, error: '저장할 자료가 없습니다.' });
 
     const folder = getOrCreateFolder();
@@ -24,31 +28,25 @@ function doPost(e) {
 }
 
 function doGet() {
-  return HtmlService.createHtmlOutput(memberLookupHtml())
+  return HtmlService.createHtmlOutput(memberLookupHtmlV2())
     .setTitle('부천지역세무사회 회비 납입내역 조회')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-function lookupMember(regNo, phoneLast4) {
+function lookupMember(regNo, phoneLast4, clientId) {
+  const clientKey = lookupLockKey(clientId);
+  const currentLock = readLookupLock(clientKey);
+  if (currentLock && currentLock.locked) return lockedLookupResponse(currentLock);
   const reg = digits(regNo);
   const last4 = digits(phoneLast4);
-  if (reg.length < 4 || last4.length !== 4) return lookupFailure('입력정보를 확인해 주세요.');
-
-  const cache = CacheService.getScriptCache();
-  const failureKey = 'fail_' + hashText(reg);
-  const failures = Number(cache.get(failureKey) || 0);
-  if (failures >= MAX_FAILURES) return { ok: false, error: '조회 시도가 많습니다. 10분 후 다시 시도해 주세요.' };
+  if (reg.length < 4 || last4.length !== 4) return recordLookupFailure(clientKey, reg, null);
 
   const data = readLookupData();
-  if (!data || !Array.isArray(data.members)) return { ok: false, error: '조회자료가 아직 준비되지 않았습니다.' };
-  const member = data.members.find(function (item) {
-    return digits(item.regNo) === reg && digits(item.phoneLast4) === last4;
-  });
-  if (!member) {
-    cache.put(failureKey, String(failures + 1), LOCK_SECONDS);
-    return lookupFailure('등록번호 또는 휴대전화 번호를 확인해 주세요.');
-  }
-  cache.remove(failureKey);
+  if (!data || !Array.isArray(data.members)) return { ok: false, noData: true };
+  const memberByReg = data.members.find(function (item) { return digits(item.regNo) === reg; });
+  const member = memberByReg && digits(memberByReg.phoneLast4) === last4 ? memberByReg : null;
+  if (!member) return recordLookupFailure(clientKey, reg, memberByReg || null);
+  deleteLookupLock(clientKey);
   return {
     ok: true,
     name: String(member.name || ''),
@@ -79,9 +77,96 @@ function lookupMember(regNo, phoneLast4) {
   };
 }
 
-function lookupFailure(message) {
+function getLookupLockStatus(clientId) {
+  const lock = readLookupLock(lookupLockKey(clientId));
+  return lock && lock.locked ? lockedLookupResponse(lock) : { ok: true, locked: false };
+}
+
+function recordLookupFailure(key, reg, member) {
   Utilities.sleep(350);
-  return { ok: false, error: message };
+  const previous = readLookupLock(key) || {};
+  const failures = Number(previous.failures || 0) + 1;
+  const now = new Date().toISOString();
+  const record = {
+    lockId: key.replace(LOCK_PREFIX, ''), failures: failures, locked: failures >= MAX_FAILURES,
+    regNo: reg, memberName: member ? String(member.name || '') : '',
+    updatedAt: now, lockedAt: failures >= MAX_FAILURES ? now : ''
+  };
+  writeLookupLock(key, record);
+  if (record.locked) return lockedLookupResponse(record);
+  return { ok: false, mismatch: true, failures: failures, remainingAttempts: MAX_FAILURES - failures };
+}
+
+function lockedLookupResponse(lock) {
+  return { ok: false, locked: true, failures: Number(lock.failures || MAX_FAILURES) };
+}
+
+function lookupLockKey(clientId) {
+  return LOCK_PREFIX + hashText(String(clientId || 'missing-client'));
+}
+
+function readLookupLock(key) {
+  try {
+    const value = PropertiesService.getScriptProperties().getProperty(key);
+    return value ? JSON.parse(value) : null;
+  } catch (error) { return null; }
+}
+
+function writeLookupLock(key, value) {
+  PropertiesService.getScriptProperties().setProperty(key, JSON.stringify(value));
+}
+
+function deleteLookupLock(key) {
+  PropertiesService.getScriptProperties().deleteProperty(key);
+}
+
+function listLookupLocks() {
+  const properties = PropertiesService.getScriptProperties().getProperties();
+  return Object.keys(properties).filter(function (key) { return key.indexOf(LOCK_PREFIX) === 0; }).map(function (key) {
+    try { return JSON.parse(properties[key]); } catch (error) { return null; }
+  }).filter(function (item) { return item && item.locked; }).map(function (item) {
+    return {
+      lockId: String(item.lockId || ''), memberName: String(item.memberName || ''),
+      maskedRegNo: maskLookupRegNo(item.regNo), failures: Number(item.failures || 0),
+      lockedAt: String(item.lockedAt || item.updatedAt || ''), knownMember: !!item.memberName
+    };
+  }).sort(function (a, b) { return b.lockedAt.localeCompare(a.lockedAt); });
+}
+
+function unlockLookupLock(lockId) {
+  const id = String(lockId || '').replace(/[^a-f0-9]/gi, '').slice(0, 32);
+  if (!id) return false;
+  PropertiesService.getScriptProperties().deleteProperty(LOCK_PREFIX + id);
+  return true;
+}
+
+function unlockUnknownLocks() {
+  return deleteLookupLocks(function (item) { return !item.memberName; });
+}
+
+function unlockAllLookupLocks() {
+  return deleteLookupLocks(function () { return true; });
+}
+
+function deleteLookupLocks(predicate) {
+  const store = PropertiesService.getScriptProperties();
+  const properties = store.getProperties();
+  const keys = [];
+  Object.keys(properties).forEach(function (key) {
+    if (key.indexOf(LOCK_PREFIX) !== 0) return;
+    let item = null;
+    try { item = JSON.parse(properties[key]); } catch (error) {}
+    if (item && item.locked && predicate(item)) keys.push(key);
+  });
+  keys.forEach(function (key) { store.deleteProperty(key); });
+  return keys.length;
+}
+
+function maskLookupRegNo(value) {
+  const reg = digits(value);
+  if (!reg) return '확인 불가';
+  if (reg.length <= 2) return reg;
+  return reg.slice(0, 2) + '••' + reg.slice(-2);
 }
 
 function readLookupData() {
@@ -137,5 +222,29 @@ function renderResult(data){var years=(data.years||[]).filter(function(item){ret
 phone.addEventListener('input',function(){phone.value=phone.value.replace(/\D/g,'').slice(0,4)});
 form.addEventListener('submit',function(e){e.preventDefault();button.disabled=true;button.textContent='조회 중…';msg.className='msg';google.script.run.withSuccessHandler(function(data){button.disabled=false;button.textContent='납부내역 조회하기';if(!data||!data.ok){msg.textContent=(data&&data.error)||'조회하지 못했습니다.';msg.className='msg err';return}renderResult(data)}).withFailureHandler(function(){button.disabled=false;button.textContent='납부내역 조회하기';msg.textContent='조회 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';msg.className='msg err'}).lookupMember(document.getElementById('reg').value,phone.value)});
 document.getElementById('again').addEventListener('click',function(){result.style.display='none';lookup.style.display='block';msg.className='msg';form.reset();window.scrollTo(0,0)});
+</script></body></html>`;
+}
+
+function memberLookupHtmlV2() {
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css"><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17243b;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{width:min(100%,500px);margin:auto;padding:32px 18px}.brand{display:flex;align-items:center;gap:11px;margin:0 4px 20px;color:#21334f;font-weight:700}.mark{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#173f72;color:#fff;font-size:13px}.panel,.summary,.years{background:#fff;border:1px solid #e2e7ed;border-radius:22px;box-shadow:0 10px 30px rgba(25,42,68,.08)}.panel{padding:34px 32px 30px}.title{margin:0;font-size:28px;line-height:1.3;letter-spacing:-.045em}.intro{margin:14px 0 28px;color:#516078;font-size:17px;line-height:1.7;word-break:keep-all}.field{margin-top:20px}label{display:block;margin-bottom:9px;color:#253652;font-size:16px;font-weight:650}input{width:100%;height:58px;border:1px solid #cbd4df;border-radius:13px;background:#fff;color:#17243b;padding:0 17px;font:inherit;font-size:17px}input:focus{outline:none;border-color:#285b96;box-shadow:0 0 0 3px rgba(40,91,150,.13)}button{font-family:inherit}.primary,.secondary{width:100%;min-height:58px;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer}.primary{margin-top:28px;border:0;background:#173f72;color:#fff}.primary:disabled{opacity:.58}.secondary{margin-top:20px;border:1px solid #cbd4df;background:#fff;color:#31445f}.privacy,.basis{display:flex;align-items:flex-start;gap:9px;margin:20px 1px 0;color:#69768a;font-size:14px;line-height:1.6;word-break:keep-all}.contact{margin:20px 0 0;text-align:center;color:#657286;font-size:14px}.contact strong{color:#31445f}.notice{display:none;margin-top:18px;padding:15px 16px;border-radius:13px;background:#fff4db;color:#765213;font-size:14px;line-height:1.65;word-break:keep-all}.view{display:none}.summary{padding:31px 30px 28px}.person{margin:0;color:#4f5f75;font-size:16px;line-height:1.5}.person strong{color:#253652}.total-label{margin-top:23px;color:#526178;font-size:15px}.total{margin:5px 0 0;color:#b23a36;font-size:35px;font-weight:750;letter-spacing:-.045em}.total.paid{color:#246746;font-size:29px}.help{margin:15px 0 0;color:#68768a;font-size:14px;line-height:1.65;word-break:keep-all}.years{margin-top:16px;padding:28px 26px 10px}.years h2{margin:0 0 9px;font-size:21px}.caption{margin:0 0 16px;color:#6b7789;font-size:14px;line-height:1.55}.year{padding:19px 0 20px;border-top:1px solid #edf0f3}.year-head{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:13px;align-items:center}.year-name{color:#263852;font-size:16px;font-weight:700}.year-detail{color:#647287;font-size:14px;line-height:1.5}.year-detail strong{display:block;color:#31445f;font-size:15px}.state{min-width:62px;padding:8px 10px;border-radius:999px;text-align:center;font-size:13px;font-weight:700}.state-paid{background:#eaf5ef;color:#28704b}.state-partial{background:#fff4db;color:#8a6111}.state-unpaid{background:#fbeceb;color:#a13d39}.payments{margin:14px 0 0 75px;padding:13px 15px;border-radius:12px;background:#f6f8fa}.payments-title{margin:0 0 8px;color:#31445f;font-size:13px;font-weight:700}.payment{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;color:#607087;font-size:13px;line-height:1.55}.payment+.payment{margin-top:5px}.payment strong{color:#263852;white-space:nowrap}.payment-empty{margin:13px 0 0 75px;color:#7a8595;font-size:13px}.state-panel{padding:38px 32px 30px;text-align:center}.state-icon{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 19px;border-radius:18px;background:#edf2f7;color:#536881;font-size:25px}.state-icon.lock{background:#fbeceb;color:#a13d39}.state-title{margin:0;font-size:25px;line-height:1.4;word-break:keep-all}.state-text{margin:14px auto 0;max-width:360px;color:#5f6d81;font-size:16px;line-height:1.75;word-break:keep-all}.state-note{margin:20px 0 0;padding:15px 16px;border-radius:13px;background:#f6f8fa;color:#667489;font-size:14px;line-height:1.65;text-align:left;word-break:keep-all}@media(max-width:520px){.wrap{padding:24px 12px}.brand{margin-bottom:16px}.panel,.summary{padding:28px 21px 25px;border-radius:19px}.years{padding:25px 19px 8px;border-radius:19px}.title{font-size:25px}.intro{font-size:16px}.year-head{grid-template-columns:55px minmax(0,1fr) auto;gap:9px}.state{min-width:57px;padding-inline:8px}.payments,.payment-empty{margin-left:0}.state-panel{padding:32px 21px 25px}}
+</style></head><body><div class="wrap"><div class="brand"><div class="mark">부천</div><span>부천지역세무사회</span></div><main>
+<section id="lookup" class="panel"><h1 class="title">회비 납부내역 조회</h1><p class="intro">등록번호와 휴대전화 번호 뒤 4자리를 입력해 주세요.</p><form id="form"><div class="field"><label for="reg">등록번호</label><input id="reg" inputmode="numeric" autocomplete="off" placeholder="등록번호 입력" required></div><div class="field"><label for="phone">휴대전화 번호 뒤 4자리</label><input id="phone" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="숫자 4자리" required></div><button id="submit" class="primary" type="submit">납부내역 조회</button></form><div id="notice" class="notice" role="alert"></div><div class="privacy"><span>✓</span><span>입력하신 정보는 회비 납부내역 조회에만 사용됩니다.</span></div></section>
+<section id="result" class="view"><div class="summary"><p class="person"><strong id="member-name"></strong>의 회비 납부내역입니다.</p><div id="total-label" class="total-label"></div><div id="total" class="total"></div><p id="result-help" class="help"></p></div><div class="years"><h2>연도별 납부현황</h2><p class="caption">최근 연도부터 표시되며, 입금액은 오래된 연도 회비부터 충당됩니다.</p><div id="year-list"></div></div><div id="basis" class="basis"></div><button id="again" class="secondary" type="button">처음 화면으로</button></section>
+<section id="no-data" class="view panel state-panel"><div class="state-icon">⌕</div><h1 class="state-title">현재 조회할 수 있는<br>납부내역이 없습니다</h1><p class="state-text">회비 납부자료가 준비된 후 다시 조회해 주세요.</p><div class="state-note">최근에 회비를 입금하신 경우 통장 거래내역이 반영된 후 확인하실 수 있습니다.</div><button class="primary reset" type="button">다시 조회</button></section>
+<section id="locked" class="view panel state-panel"><div class="state-icon lock">🔒</div><h1 class="state-title">조회가 잠겼습니다</h1><p class="state-text">입력정보가 3회 연속 일치하지 않아 더 이상 입력할 수 없습니다.</p><div class="state-note">확인이 필요하시면 재무간사 김선영 세무사에게 문의해 주세요.</div></section>
+<p class="contact">문의&nbsp; <strong>재무간사 김선영 세무사</strong></p></main></div><script>
+var form=document.getElementById('form'),submit=document.getElementById('submit'),notice=document.getElementById('notice'),phone=document.getElementById('phone'),CLIENT_KEY='bucheon-fee-lookup-client-v1';
+function clientId(){var value=localStorage.getItem(CLIENT_KEY);if(!value){value=String(Date.now())+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);localStorage.setItem(CLIENT_KEY,value)}return value}
+function show(id){['lookup','result','no-data','locked'].forEach(function(key){document.getElementById(key).style.display=key===id?'block':'none'});window.scrollTo(0,0)}
+function won(value){return Number(value||0).toLocaleString('ko-KR')+'원'}
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]})}
+function basisText(value){if(!value)return'통장 거래내역 기준 · 확인 가능한 마지막 거래 시각 없음';var text=String(value).replace('T',' ').replace('Z','').slice(0,19),m=text.match(/^(\\d{4})-(\\d{2})-(\\d{2})\\s+(\\d{2}):(\\d{2})/);if(!m)return'통장 거래내역 기준 · '+text+'까지';var h=Number(m[4]),ampm=h<12?'오전':'오후';return'통장 거래내역 기준 · '+Number(m[1])+'. '+Number(m[2])+'. '+Number(m[3])+'. '+ampm+' '+(h%12||12)+'시'+(Number(m[5])?' '+Number(m[5])+'분':'')+'까지'}
+function paymentHtml(p){var when=esc(p.date)+(p.time?' '+esc(p.time):''),full=Number(p.fullAmount||0),applied=Number(p.appliedAmount||0);return'<div class="payment"><span>'+when+' 입금 '+won(full)+(full!==applied?' 중':'')+'</span><strong>'+won(applied)+' 충당</strong></div>'}
+function yearHtml(item){var status=item.status==='paid'?'완납':item.status==='partial'?'일부납':'미납',statusClass='state-'+(item.status==='paid'?'paid':item.status),main=item.status==='paid'?'충당 '+won(item.allocated):item.status==='partial'?'충당 '+won(item.allocated):'남은 금액 '+won(item.remaining),sub=item.status==='partial'?'남은 금액 '+won(item.remaining):'회비 '+won(item.required),payments=(item.payments||[]).map(paymentHtml).join(''),paymentBlock=payments?'<div class="payments"><p class="payments-title">입금·충당 내역</p>'+payments+'</div>':'<p class="payment-empty">입금·충당 내역이 없습니다.</p>',year=item.year==='prior'?'이월':String(item.year);return'<div class="year"><div class="year-head"><div class="year-name">'+esc(year)+'</div><div class="year-detail"><strong>'+main+'</strong>'+sub+'</div><div class="state '+statusClass+'">'+status+'</div></div>'+paymentBlock+'</div>'}
+function renderResult(data){var years=(data.years||[]).filter(function(item){return Number(item.required||0)>0}).sort(function(a,b){if(a.year==='prior')return 1;if(b.year==='prior')return-1;return Number(b.year)-Number(a.year)}),arrears=Number(data.totalArrears||0);document.getElementById('member-name').textContent=data.name+' 세무사님';var total=document.getElementById('total');if(arrears>0){document.getElementById('total-label').textContent='총 미납액';total.textContent=won(arrears);total.className='total';document.getElementById('result-help').textContent='아래에서 입금일과 입금액, 각 연도 회비에 충당된 금액을 확인하실 수 있습니다.'}else{document.getElementById('total-label').textContent='';total.textContent='미납액이 없습니다';total.className='total paid';document.getElementById('result-help').textContent='연도별 입금일과 입금액, 각 연도 회비에 충당된 금액은 아래에서 확인하실 수 있습니다.'}document.getElementById('year-list').innerHTML=years.map(yearHtml).join('');document.getElementById('basis').textContent=basisText(data.bankLastTransactionAt);show('result')}
+function showMismatch(data){var left=Number(data.remainingAttempts||0);notice.innerHTML='입력하신 정보와 일치하는 회원정보를 찾지 못했습니다.<br>등록번호와 휴대전화 번호 뒤 4자리를 다시 확인해 주세요.<br><strong>입력정보가 3회 연속 일치하지 않으면 조회가 잠깁니다.'+(left?' 남은 입력 횟수 '+left+'회.':'')+'</strong>';notice.style.display='block'}
+function handleResponse(data){submit.disabled=false;submit.textContent='납부내역 조회';if(data&&data.locked){show('locked');return}if(data&&data.noData){show('no-data');return}if(!data||!data.ok){showMismatch(data||{});return}notice.style.display='none';renderResult(data)}
+phone.addEventListener('input',function(){phone.value=phone.value.replace(/\\D/g,'').slice(0,4)});form.addEventListener('submit',function(e){e.preventDefault();submit.disabled=true;submit.textContent='조회 중…';google.script.run.withSuccessHandler(handleResponse).withFailureHandler(function(){submit.disabled=false;submit.textContent='납부내역 조회';notice.textContent='잠시 후 다시 조회해 주세요.';notice.style.display='block'}).lookupMember(document.getElementById('reg').value,phone.value,clientId())});document.getElementById('again').addEventListener('click',function(){form.reset();notice.style.display='none';show('lookup')});Array.prototype.forEach.call(document.querySelectorAll('.reset'),function(button){button.addEventListener('click',function(){form.reset();notice.style.display='none';show('lookup')})});google.script.run.withSuccessHandler(function(data){if(data&&data.locked)show('locked')}).getLookupLockStatus(clientId());
 </script></body></html>`;
 }
