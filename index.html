@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-03 11:39 KST | 회원 조회 화면·3회 오류 잠금·관리자 잠금 해제 반영 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v36 · 업데이트 2026-09-03 11:39</div>
+<!-- BUILD_DATE: 2026-09-03 15:12 KST | 통장 업로드 상태줄 실시간 갱신 보정 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v37 · 업데이트 2026-09-03 15:12</div>
 <script>
 (()=>{var b2=Object.create;var dh=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Rn=(e,t)=>()=>{try{return t||e((t={exports:{}}).exports,t),t.exports}catch(a){throw t=0,a}};var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&dh(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ti=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?dh(a,"default",{value:e,enumerable:!0}):a,e));var Ch=Rn(Be=>{"use strict";/**
  * @license React
@@ -2175,7 +2175,9 @@ function EmptyState({ icon: Ic, title, desc }) {
     var uploadMeta = readJson(UPLOAD_KEY, null) || {};
     var spans = document.querySelectorAll('span');
     for (var index = 0; index < spans.length; index++) {
-      if ((spans[index].textContent || '').indexOf('통장 자료 최종일시:') === -1) continue;
+      var labelText = spans[index].textContent || '';
+      if (labelText.indexOf('통장 자료 최종일시:') === -1
+        && labelText.indexOf('통장파일 업로드 ·') === -1) continue;
       spans[index].innerHTML = '🏦 통장파일 업로드 · <b class="text-gray-800">' + formatAdminDateTime(uploadMeta.uploadedAt) + '</b>'
         + ' <span class="text-gray-400">　통장 마지막 거래 · <b class="text-gray-800">' + formatAdminDateTime(uploadMeta.maxDate) + '</b></span>';
     }
