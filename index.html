@@ -36,13 +36,14 @@ html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI
     }
     src = src.replace(
       /<!-- BUILD_DATE:[\s\S]*?-->/,
-      '<!-- BUILD_DATE: 2026-09-04 | v53 거래 분류 수정 저장 보정 · v52 전체 기능 유지 -->'
+      '<!-- BUILD_DATE: 2026-09-04 | v53.1 거래 분류 수정 삽입 위치 오류 수정 · v52 전체 기능 유지 -->'
     );
     src = src.replace(
       /<div id="buildstamp" class="build-date">[\s\S]*?<\/div>/,
-      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v53 · 업데이트 2026-09-04</div>'
+      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v53.1 · 업데이트 2026-09-04</div>'
     );
-    if (src.indexOf('</body>') >= 0) src = src.replace('</body>', hotfix + '\n</body>');
+    var bodyEnd = src.lastIndexOf('</body>');
+    if (bodyEnd >= 0) src = src.slice(0, bodyEnd) + hotfix + '\n' + src.slice(bodyEnd);
     else src += hotfix;
 
     document.open();
