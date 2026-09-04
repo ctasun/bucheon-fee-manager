@@ -1693,7 +1693,7 @@ function CellModal({ member, yearData, onClose, onUnassign }) {
   const isPrior = yearData.isPrior;
   const half = !isPrior && yearData.year === jy && member.joinDate && monthOf(member.joinDate) >= 7;
   return (
-    <Modal onClose={onClose} title={`${member.name} · ${isPrior ? '2020년까지 이월 미납' : yearData.year + '년 회비'} 상세`}>
+    <Modal onClose={onClose} title={`${member.name} · ${isPrior ? '2020년까지 이월 미납' : yearData.year + '년 회비'} 충당 추적`}>
       {isPrior && <div className="mb-3 text-xs text-purple-700 bg-purple-50 p-2 rounded">ℹ️ 2020년까지의 이월 미납(선납 반영)입니다. 총 미납액에 포함됩니다.</div>}
       {half && <div className="mb-3 text-xs text-indigo-700 bg-indigo-50 p-2 rounded">ℹ️ 하반기({monthOf(member.joinDate)}월) 입회 첫 해로 의무 회비가 절반 적용되었습니다.</div>}
       {!isPrior && yearData.payments.some(p => p.date && yearOf(p.date) < jy) && <div className="mb-3 text-xs text-rose-700 bg-rose-50 p-2 rounded">⚠ 개업/전입일({member.joinDate})보다 이른 연도의 입금이 있습니다. 엑셀 입력 오류일 수 있으니 개업/전입일을 확인하세요.</div>}
@@ -1865,7 +1865,7 @@ createRoot(document.getElementById('root')).render(<App />);
       lines.push('■ 현재 미납 없이 완납 상태입니다. 감사합니다.');
     }
     lines.push('');
-    lines.push('※ 회비는 오래된 연도부터 순서대로 충당되며, 다음 입금분은 이어서 충당됩니다.');
+    lines.push('납부하신 회비는 발생 순서(과거 미납분)에 따라 순차적으로 충당됩니다.');
     lines.push('');
     lines.push('***회비 입금 계좌***');
     lines.push('국민은행 365602-04-026961 (김선영(부천지역세무사회))');
@@ -2832,3 +2832,48 @@ createRoot(document.getElementById('root')).render(<App />);
 
 </body>
 </html>
+<script>
+/* v48 · 연도 셀 회비 충당 추적 + 카톡 문구/닫기 안정화 */
+(function(){
+  var MK='mfm-members-v2', TK='mfm-tx-v2', FK='mfm-fees-v2';
+  function load(k,fb){try{var v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch(e){return fb;}}
+  function won(n){return (Number(n)||0).toLocaleString('ko-KR');}
+  function yOf(d){return d?new Date(d).getFullYear():new Date().getFullYear();}
+  function mOf(d){return d?new Date(d).getMonth()+1:1;}
+  function defFee(y){return (y>=2020&&y<=2022)?100000:200000;}
+  function feeFor(y,fees){var f=(fees||[]).find(function(x){return Number(x.year)===Number(y);});return f?Number(f.amount)||0:defFee(y);}
+  function reqFor(m,y,fees){var base=feeFor(y,fees);if(!base||y<=2020||y>new Date().getFullYear())return 0;var jy=yOf(m.joinDate),jm=mOf(m.joinDate);if(m.joinDate&&y<jy)return 0;if(m.leaveDate&&y>yOf(m.leaveDate))return 0;if(m.joinDate&&y===jy&&jm>=7)return Math.round(base/2);return base;}
+  function duesTx(t){return t&&t.memberId&&!t.excluded&&!t.matchPending&&t.direction!=='out'&&(!t.category||t.category==='dues');}
+  function allocate(m,mtx,fees,upTo){
+    var startY=Math.max(yOf(m.joinDate),2011), endY=m.leaveDate?Math.min(upTo,yOf(m.leaveDate)-1):upTo, years=[], prior=Number(m.priorArrears||0);
+    if(prior>0)years.push({year:'prior',label:'2020까지 이월',required:prior,allocated:0,payments:[],isPrior:true});
+    for(var y=startY;y<=endY;y++)years.push({year:y,label:y+'년',required:reqFor(m,y,fees),allocated:0,payments:[]});
+    mtx.slice().sort(function(a,b){return new Date((a.date||'')+' '+(a.time||''))-new Date((b.date||'')+' '+(b.time||''));}).forEach(function(tx){
+      var rem=Number(tx.amount)||0;
+      years.forEach(function(yr){if(rem<=0||yr.allocated>=yr.required)return;var give=Math.min(rem,yr.required-yr.allocated);yr.allocated+=give;yr.payments.push({txId:tx.id,date:tx.date,time:tx.time||'',depositorName:tx.depositorName||'',full:Number(tx.amount)||0,part:give});rem-=give;});
+      if(rem>0&&years.length){var last=years[years.length-1];last.allocated+=rem;last.payments.push({txId:tx.id,date:tx.date,time:tx.time||'',depositorName:tx.depositorName||'',full:Number(tx.amount)||0,part:rem,overflow:true});}
+    }); return years;
+  }
+  function memberFromRow(tr){var reg=(tr.children[1]&&tr.children[1].textContent||'').trim(),name=(tr.children[2]&&tr.children[2].textContent||'').trim();var ms=load(MK,[]);return ms.find(function(m){return reg&&reg!=='-'&&String(m.regNo||'').trim()===reg;})||ms.find(function(m){return String(m.name||'').trim()===name;});}
+  function selectedYear(btn){var td=btn.closest('td'),tr=td&&td.parentElement,table=tr&&tr.closest('table');if(!td||!tr||!table)return null;var idx=Array.prototype.indexOf.call(tr.children,td),th=table.querySelector('thead tr')&&table.querySelector('thead tr').children[idx];if(!th)return null;var txt=(th.textContent||'').trim();if(txt.indexOf('2020까지')===0)return 'prior';var m=txt.match(/(20\d{2})년/);return m?Number(m[1]):null;}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function closeTrace(e){if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}var ov=document.getElementById('fee-trace-v48');if(ov)ov.remove();var root=document.getElementById('root');if(root){root.style.display='';root.style.visibility='';root.style.opacity='';}document.documentElement.style.overflow='';document.body.style.overflow='';setTimeout(function(){window.dispatchEvent(new Event('resize'));},0);}
+  function showTrace(m,target){
+    closeTrace(); var tx=load(TK,[]),fees=load(FK,[]),upTo=Math.max(new Date().getFullYear(),Number(target)||0),mtx=tx.filter(function(t){return t.memberId===m.id&&duesTx(t);}),years=allocate(m,mtx,fees,upTo),yr=years.find(function(x){return String(x.year)===String(target);}); if(!yr)return;
+    var unpaid=Math.max(0,yr.required-yr.allocated), status=unpaid===0?'완납':yr.allocated>0?'일부납':'미납';
+    var byTx={},order=[];years.forEach(function(y){y.payments.forEach(function(p){if(!byTx[p.txId]){byTx[p.txId]={date:p.date,time:p.time,name:p.depositorName,full:p.full,parts:[]};order.push(p.txId);}byTx[p.txId].parts.push({year:y.year,label:y.label,part:p.part});});});
+    order.sort(function(a,b){return new Date((byTx[a].date||'')+' '+(byTx[a].time||''))-new Date((byTx[b].date||'')+' '+(byTx[b].time||''));});
+    var relevant=order.filter(function(id){return byTx[id].parts.some(function(p){return p.year==='prior'||target==='prior'||Number(p.year)<=Number(target);});});
+    var reason=''; if(unpaid>0){var prev=years.filter(function(y){return y!==yr&&(y.year==='prior'||target==='prior'||Number(y.year)<Number(target))&&y.required>0;});var usedPrev=prev.some(function(y){return y.allocated>0;});reason=usedPrev?'이전 연도 회비가 먼저 충당되어 '+yr.label+'에는 '+won(yr.allocated)+'원만 충당되고 '+won(unpaid)+'원이 미납으로 남았습니다.':'현재까지 '+yr.label+'에 충당된 입금이 부족하여 '+won(unpaid)+'원이 미납으로 남았습니다.';}else{reason=yr.label+' 의무 회비 '+won(yr.required)+'원이 모두 충당되어 완납 상태입니다.';}
+    var rows=relevant.map(function(id,i){var t=byTx[id],parts=t.parts.map(function(p){var hi=String(p.year)===String(target);return '<div'+(hi?' style="font-weight:800;color:#1d4ed8"':'')+'>→ '+esc(p.label)+' 회비 '+won(p.part)+'원</div>';}).join('');return '<tr><td>'+(i+1)+'</td><td>'+esc(t.date)+' <span style="color:#94a3b8">'+esc(t.time)+'</span></td><td>'+esc(t.name||'-')+'</td><td style="text-align:right">'+won(t.full)+'</td><td>'+parts+'</td></tr>';}).join('');
+    var ov=document.createElement('div');ov.id='fee-trace-v48';ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:200000;display:flex;align-items:center;justify-content:center;padding:18px;';
+    ov.innerHTML='<section style="width:min(100%,980px);max-height:90vh;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.28);overflow:hidden;display:flex;flex-direction:column"><header style="padding:18px 22px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center"><b style="font-size:21px">'+esc(m.name)+' · '+esc(yr.label)+' 회비 충당 추적</b><button id="ft-x" style="border:0;background:none;font-size:26px;color:#64748b;cursor:pointer">×</button></header><div style="padding:18px 22px;overflow:auto"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px"><div class="ft-card">의무 회비<b>'+won(yr.required)+'원</b></div><div class="ft-card">충당 금액<b style="color:#2563eb">'+won(yr.allocated)+'원</b></div><div class="ft-card">미납 금액<b style="color:#dc2626">'+won(unpaid)+'원</b></div><div class="ft-card">납부 상태<b>'+status+'</b></div></div><div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:13px 15px;margin-bottom:16px"><b style="color:#1d4ed8">현재 상태가 된 이유</b><div style="margin-top:5px;line-height:1.6">'+esc(reason)+'</div></div><h3 style="font-size:17px;margin:0 0 8px">입금 및 충당 흐름</h3><div style="font-size:12px;color:#64748b;margin-bottom:8px">선택한 연도의 결과가 만들어진 과정을 오래된 입금부터 보여줍니다.</div><div style="overflow:auto;border:1px solid #e5e7eb;border-radius:10px"><table class="ft-table"><thead><tr><th>No.</th><th>입금일시</th><th>입금자명(원본)</th><th>입금액</th><th>충당 내역</th></tr></thead><tbody>'+(rows||'<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:24px">확인된 회비 입금이 없습니다.</td></tr>')+'</tbody></table></div></div><footer style="padding:12px 22px;border-top:1px solid #e5e7eb;text-align:right"><button id="ft-close" style="padding:10px 22px;border:0;border-radius:8px;background:#f1f5f9;font-size:15px;font-weight:700;cursor:pointer">닫기</button></footer></section>';
+    if(!document.getElementById('ft-style')){var st=document.createElement('style');st.id='ft-style';st.textContent='.ft-card{background:#f8fafc;border-radius:10px;padding:12px;color:#64748b;font-size:13px}.ft-card b{display:block;margin-top:4px;color:#0f172a;font-size:19px}.ft-table{width:100%;border-collapse:collapse;font-size:13px}.ft-table th{background:#f8fafc;color:#475569;text-align:left;padding:9px;border-bottom:1px solid #e5e7eb;position:sticky;top:0}.ft-table td{padding:9px;border-bottom:1px solid #f1f5f9;vertical-align:top}.ft-table th:nth-child(4){text-align:right}@media(max-width:700px){#fee-trace-v48 section{max-height:94vh}.ft-card{padding:9px}.ft-card b{font-size:16px}}';document.head.appendChild(st);}
+    document.body.appendChild(ov);document.getElementById('ft-x').onclick=closeTrace;document.getElementById('ft-close').onclick=closeTrace;ov.onclick=function(e){if(e.target===ov)closeTrace(e);};
+  }
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button[title^="의무 "]');if(!b)return;var tr=b.closest('tr'),m=tr&&memberFromRow(tr),y=selectedYear(b);if(!m||y==null)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();showTrace(m,y);},true);
+  function patchKakaoText(){var old=window.cfmBuildKakaoText;if(typeof old!=='function'||old.__v48)return;var nw=function(m){return old(m).replace('※ 회비는 오래된 연도부터 순서대로 충당되며, 다음 입금분은 이어서 충당됩니다.','납부하신 회비는 발생 순서(과거 미납분)에 따라 순차적으로 충당됩니다.');};nw.__v48=true;window.cfmBuildKakaoText=nw;}
+  setInterval(function(){patchKakaoText();var t=document.getElementById('kk-t');if(t&&t.value.indexOf('※ 회비는 오래된 연도부터 순서대로 충당되며, 다음 입금분은 이어서 충당됩니다.')>=0)t.value=t.value.replace('※ 회비는 오래된 연도부터 순서대로 충당되며, 다음 입금분은 이어서 충당됩니다.','납부하신 회비는 발생 순서(과거 미납분)에 따라 순차적으로 충당됩니다.');},300);
+  document.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#kk-x,#kk-close');if(!el)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();var ov=document.getElementById('kk-ov');if(ov)ov.remove();var root=document.getElementById('root');if(root){root.style.display='';root.style.visibility='';root.style.opacity='';}document.documentElement.style.overflow='';document.body.style.overflow='';setTimeout(function(){window.dispatchEvent(new Event('resize'));},0);},true);
+})();
+</script>
