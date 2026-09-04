@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-04 10:25 KST | 기본 회비·예외 기간 설정 간소화 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v40 · 업데이트 2026-09-04 10:25</div>
+<!-- BUILD_DATE: 2026-09-04 11:45 KST | 회원명단 전체 기본정보 일괄 반영·상세 표시 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v42 · 업데이트 2026-09-04 11:45</div>
 <script>
 (()=>{var b2=Object.create;var ph=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Bn=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports);var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&ph(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ai=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?ph(a,"default",{value:e,enumerable:!0}):a,e));var _h=Bn(He=>{"use strict";var Di=Symbol.for("react.element"),H2=Symbol.for("react.portal"),W2=Symbol.for("react.fragment"),V2=Symbol.for("react.strict_mode"),z2=Symbol.for("react.profiler"),q2=Symbol.for("react.provider"),G2=Symbol.for("react.context"),X2=Symbol.for("react.forward_ref"),j2=Symbol.for("react.suspense"),$2=Symbol.for("react.memo"),K2=Symbol.for("react.lazy"),mh=Symbol.iterator;function Y2(e){return e===null||typeof e!="object"?null:(e=mh&&e[mh]||e["@@iterator"],typeof e=="function"?e:null)}var vh={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}},wh=Object.assign,Sh={};function ys(e,t,a){this.props=e,this.context=t,this.refs=Sh,this.updater=a||vh}ys.prototype.isReactComponent={};ys.prototype.setState=function(e,t){if(typeof e!="object"&&typeof e!="function"&&e!=null)throw Error("setState(...): takes an object of state variables to update or a function which returns an object of state variables.");this.updater.enqueueSetState(this,e,t,"setState")};ys.prototype.forceUpdate=function(e){this.updater.enqueueForceUpdate(this,e,"forceUpdate")};function yh(){}yh.prototype=ys.prototype;function _f(e,t,a){this.props=e,this.context=t,this.refs=Sh,this.updater=a||vh}var Tf=_f.prototype=new yh;Tf.constructor=_f;wh(Tf,ys.prototype);Tf.isPureReactComponent=!0;var xh=Array.isArray,kh=Object.prototype.hasOwnProperty,Ef={current:null},Lh={key:!0,ref:!0,__self:!0,__source:!0};function Ch(e,t,a){var r,n={},s=null,i=null;if(t!=null)for(r in t.ref!==void 0&&(i=t.ref),t.key!==void 0&&(s=""+t.key),t)kh.call(t,r)&&!Lh.hasOwnProperty(r)&&(n[r]=t[r]);var o=arguments.length-2;if(o===1)n.children=a;else if(1<o){for(var l=Array(o),u=0;u<o;u++)l[u]=arguments[u+2];n.children=l}if(e&&e.defaultProps)for(r in o=e.defaultProps,o)n[r]===void 0&&(n[r]=o[r]);return{$$typeof:Di,type:e,key:s,ref:i,props:n,_owner:Ef.current}}function Q2(e,t){return{$$typeof:Di,type:e.type,key:t,ref:e.ref,props:e.props,_owner:e._owner}}function Ff(e){return typeof e=="object"&&e!==null&&e.$$typeof===Di}function Z2(e){var t={"=":"=0",":":"=2"};return"$"+e.replace(/[=:]/g,function(a){return t[a]})}var gh=/\/+/g;function If(e,t){return typeof e=="object"&&e!==null&&e.key!=null?Z2(""+e.key):t.toString(36)}function pl(e,t,a,r,n){var s=typeof e;(s==="undefined"||s==="boolean")&&(e=null);var i=!1;if(e===null)i=!0;else switch(s){case"string":case"number":i=!0;break;case"object":switch(e.$$typeof){case Di:case H2:i=!0}}if(i)return i=e,n=n(i),e=r===""?"."+If(i,0):r,xh(n)?(a="",e!=null&&(a=e.replace(gh,"$&/")+"/"),pl(n,t,a,"",function(u){return u})):n!=null&&(Ff(n)&&(n=Q2(n,a+(!n.key||i&&i.key===n.key?"":(""+n.key).replace(gh,"$&/")+"/")+e)),t.push(n)),1;if(i=0,r=r===""?".":r+":",xh(e))for(var o=0;o<e.length;o++){s=e[o];var l=r+If(s,o);i+=pl(s,t,a,l,n)}else if(l=Y2(e),typeof l=="function")for(e=l.call(e),o=0;!(s=e.next()).done;)s=s.value,l=r+If(s,o++),i+=pl(s,t,a,l,n);else if(s==="object")throw t=String(e),Error("Objects are not valid as a React child (found: "+(t==="[object Object]"?"object with keys {"+Object.keys(e).join(", ")+"}":t)+"). If you meant to render a collection of children, use an array instead.");return i}function hl(e,t,a){if(e==null)return e;var r=[],n=0;return pl(e,r,"","",function(s){return t.call(a,s,n++)}),r}function J2(e){if(e._status===-1){var t=e._result;t=t(),t.then(function(a){(e._status===0||e._status===-1)&&(e._status=1,e._result=a)},function(a){(e._status===0||e._status===-1)&&(e._status=2,e._result=a)}),e._status===-1&&(e._status=0,e._result=t)}if(e._status===1)return e._result.default;throw e._result}var ma={current:null},ml={transition:null},ew={ReactCurrentDispatcher:ma,ReactCurrentBatchConfig:ml,ReactCurrentOwner:Ef};function Ih(){throw Error("act(...) is not supported in production builds of React.")}He.Children={map:hl,forEach:function(e,t,a){hl(e,function(){t.apply(this,arguments)},a)},count:function(e){var t=0;return hl(e,function(){t++}),t},toArray:function(e){return hl(e,function(t){return t})||[]},only:function(e){if(!Ff(e))throw Error("React.Children.only expected to receive a single React element child.");return e}};He.Component=ys;He.Fragment=W2;He.Profiler=z2;He.PureComponent=_f;He.StrictMode=V2;He.Suspense=j2;He.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED=ew;He.act=Ih;He.cloneElement=function(e,t,a){if(e==null)throw Error("React.cloneElement(...): The argument must be a React element, but you passed "+e+".");var r=wh({},e.props),n=e.key,s=e.ref,i=e._owner;if(t!=null){if(t.ref!==void 0&&(s=t.ref,i=Ef.current),t.key!==void 0&&(n=""+t.key),e.type&&e.type.defaultProps)var o=e.type.defaultProps;for(l in t)kh.call(t,l)&&!Lh.hasOwnProperty(l)&&(r[l]=t[l]===void 0&&o!==void 0?o[l]:t[l])}var l=arguments.length-2;if(l===1)r.children=a;else if(1<l){o=Array(l);for(var u=0;u<l;u++)o[u]=arguments[u+2];r.children=o}return{$$typeof:Di,type:e.type,key:n,ref:s,props:r,_owner:i}};He.createContext=function(e){return e={$$typeof:G2,_currentValue:e,_currentValue2:e,_threadCount:0,Provider:null,Consumer:null,_defaultValue:null,_globalName:null},e.Provider={$$typeof:q2,_context:e},e.Consumer=e};He.createElement=Ch;He.createFactory=function(e){var t=Ch.bind(null,e);return t.type=e,t};He.createRef=function(){return{current:null}};He.forwardRef=function(e){return{$$typeof:X2,render:e}};He.isValidElement=Ff;He.lazy=function(e){return{$$typeof:K2,_payload:{_status:-1,_result:e},_init:J2}};He.memo=function(e,t){return{$$typeof:$2,type:e,compare:t===void 0?null:t}};He.startTransition=function(e){var t=ml.transition;ml.transition={};try{e()}finally{ml.transition=t}};He.unstable_act=Ih;He.useCallback=function(e,t){return ma.current.useCallback(e,t)};He.useContext=function(e){return ma.current.useContext(e)};He.useDebugValue=function(){};He.useDeferredValue=function(e){return ma.current.useDeferredValue(e)};He.useEffect=function(e,t){return ma.current.useEffect(e,t)};He.useId=function(){return ma.current.useId()};He.useImperativeHandle=function(e,t,a){return ma.current.useImperativeHandle(e,t,a)};He.useInsertionEffect=function(e,t){return ma.current.useInsertionEffect(e,t)};He.useLayoutEffect=function(e,t){return ma.current.useLayoutEffect(e,t)};He.useMemo=function(e,t){return ma.current.useMemo(e,t)};He.useReducer=function(e,t,a){return ma.current.useReducer(e,t,a)};He.useRef=function(e){return ma.current.useRef(e)};He.useState=function(e){return ma.current.useState(e)};He.useSyncExternalStore=function(e,t,a){return ma.current.useSyncExternalStore(e,t,a)};He.useTransition=function(){return ma.current.useTransition()};He.version="18.3.1"});var ks=Bn((qD,Th)=>{"use strict";Th.exports=_h()});var Bh=Bn(st=>{"use strict";function Nf(e,t){var a=e.length;e.push(t);e:for(;0<a;){var r=a-1>>>1,n=e[r];if(0<xl(n,t))e[r]=t,e[a]=n,a=r;else break e}}function nr(e){return e.length===0?null:e[0]}function vl(e){if(e.length===0)return null;var t=e[0],a=e.pop();if(a!==t){e[0]=a;e:for(var r=0,n=e.length,s=n>>>1;r<s;){var i=2*(r+1)-1,o=e[i],l=i+1,u=e[l];if(0>xl(o,a))l<n&&0>xl(u,o)?(e[r]=u,e[l]=a,r=l):(e[r]=o,e[i]=a,r=i);else if(l<n&&0>xl(u,a))e[r]=u,e[l]=a,r=l;else break e}}return t}function xl(e,t){var a=e.sortIndex-t.sortIndex;return a!==0?a:e.id-t.id}typeof performance=="object"&&typeof performance.now=="function"?(Eh=performance,st.unstable_now=function(){return Eh.now()}):(Af=Date,Fh=Af.now(),st.unstable_now=function(){return Af.now()-Fh});var Eh,Af,Fh,vr=[],tn=[],tw=1,za=null,ea=3,wl=!1,Rn=!1,Ni=!1,Ph=typeof setTimeout=="function"?setTimeout:null,Nh=typeof clearTimeout=="function"?clearTimeout:null,Ah=typeof setImmediate<"u"?setImmediate:null;typeof navigator<"u"&&navigator.scheduling!==void 0&&navigator.scheduling.isInputPending!==void 0&&navigator.scheduling.isInputPending.bind(navigator.scheduling);function bf(e){for(var t=nr(tn);t!==null;){if(t.callback===null)vl(tn);else if(t.startTime<=e)vl(tn),t.sortIndex=t.expirationTime,Nf(vr,t);else break;t=nr(tn)}}function Mf(e){if(Ni=!1,bf(e),!Rn)if(nr(vr)!==null)Rn=!0,Bf(Of);else{var t=nr(tn);t!==null&&Rf(Mf,t.startTime-e)}}function Of(e,t){Rn=!1,Ni&&(Ni=!1,Nh(bi),bi=-1),wl=!0;var a=ea;try{for(bf(t),za=nr(vr);za!==null&&(!(za.expirationTime>t)||e&&!Oh());){var r=za.callback;if(typeof r=="function"){za.callback=null,ea=za.priorityLevel;var n=r(za.expirationTime<=t);t=st.unstable_now(),typeof n=="function"?za.callback=n:za===nr(vr)&&vl(vr),bf(t)}else vl(vr);za=nr(vr)}if(za!==null)var s=!0;else{var i=nr(tn);i!==null&&Rf(Mf,i.startTime-t),s=!1}return s}finally{za=null,ea=a,wl=!1}}var Sl=!1,gl=null,bi=-1,bh=5,Mh=-1;function Oh(){return!(st.unstable_now()-Mh<bh)}function Df(){if(gl!==null){var e=st.unstable_now();Mh=e;var t=!0;try{t=gl(!0,e)}finally{t?Pi():(Sl=!1,gl=null)}}else Sl=!1}var Pi;typeof Ah=="function"?Pi=function(){Ah(Df)}:typeof MessageChannel<"u"?(Pf=new MessageChannel,Dh=Pf.port2,Pf.port1.onmessage=Df,Pi=function(){Dh.postMessage(null)}):Pi=function(){Ph(Df,0)};var Pf,Dh;function Bf(e){gl=e,Sl||(Sl=!0,Pi())}function Rf(e,t){bi=Ph(function(){e(st.unstable_now())},t)}st.unstable_IdlePriority=5;st.unstable_ImmediatePriority=1;st.unstable_LowPriority=4;st.unstable_NormalPriority=3;st.unstable_Profiling=null;st.unstable_UserBlockingPriority=2;st.unstable_cancelCallback=function(e){e.callback=null};st.unstable_continueExecution=function(){Rn||wl||(Rn=!0,Bf(Of))};st.unstable_forceFrameRate=function(e){0>e||125<e?console.error("forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported"):bh=0<e?Math.floor(1e3/e):5};st.unstable_getCurrentPriorityLevel=function(){return ea};st.unstable_getFirstCallbackNode=function(){return nr(vr)};st.unstable_next=function(e){switch(ea){case 1:case 2:case 3:var t=3;break;default:t=ea}var a=ea;ea=t;try{return e()}finally{ea=a}};st.unstable_pauseExecution=function(){};st.unstable_requestPaint=function(){};st.unstable_runWithPriority=function(e,t){switch(e){case 1:case 2:case 3:case 4:case 5:break;default:e=3}var a=ea;ea=e;try{return t()}finally{ea=a}};st.unstable_scheduleCallback=function(e,t,a){var r=st.unstable_now();switch(typeof a=="object"&&a!==null?(a=a.delay,a=typeof a=="number"&&0<a?r+a:r):a=r,e){case 1:var n=-1;break;case 2:n=250;break;case 5:n=1073741823;break;case 4:n=1e4;break;default:n=5e3}return n=a+n,e={id:tw++,callback:t,priorityLevel:e,startTime:a,expirationTime:n,sortIndex:-1},a>r?(e.sortIndex=a,Nf(tn,e),nr(vr)===null&&e===nr(tn)&&(Ni?(Nh(bi),bi=-1):Ni=!0,Rf(Mf,a-r))):(e.sortIndex=n,Nf(vr,e),Rn||wl||(Rn=!0,Bf(Of))),e};st.unstable_shouldYield=Oh;st.unstable_wrapCallback=function(e){var t=ea;return function(){var a=ea;ea=t;try{return e.apply(this,arguments)}finally{ea=a}}}});var Uh=Bn((XD,Rh)=>{"use strict";Rh.exports=Bh()});var zx=Bn(Oa=>{"use strict";var aw=ks(),ba=Uh();function ue(e){for(var t="https://reactjs.org/docs/error-decoder.html?invariant="+e,a=1;a<arguments.length;a++)t+="&args[]="+encodeURIComponent(arguments[a]);return"Minified React error #"+e+"; visit "+t+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings."}var Xp=new Set,ao={};function Qn(e,t){zs(e,t),zs(e+"Capture",t)}function zs(e,t){for(ao[e]=t,e=0;e<t.length;e++)Xp.add(t[e])}var Hr=!(typeof window>"u"||typeof window.document>"u"||typeof window.document.createElement>"u"),oc=Object.prototype.hasOwnProperty,rw=/^[:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD][:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\-.0-9\u00B7\u0300-\u036F\u203F-\u2040]*$/,Hh={},Wh={};function nw(e){return oc.call(Wh,e)?!0:oc.call(Hh,e)?!1:rw.test(e)?Wh[e]=!0:(Hh[e]=!0,!1)}function sw(e,t,a,r){if(a!==null&&a.type===0)return!1;switch(typeof t){case"function":case"symbol":return!0;case"boolean":return r?!1:a!==null?!a.acceptsBooleans:(e=e.toLowerCase().slice(0,5),e!=="data-"&&e!=="aria-");default:return!1}}function iw(e,t,a,r){if(t===null||typeof t>"u"||sw(e,t,a,r))return!0;if(r)return!1;if(a!==null)switch(a.type){case 3:return!t;case 4:return t===!1;case 5:return isNaN(t);case 6:return isNaN(t)||1>t}return!1}function va(e,t,a,r,n,s,i){this.acceptsBooleans=t===2||t===3||t===4,this.attributeName=r,this.attributeNamespace=n,this.mustUseProperty=a,this.propertyName=e,this.type=t,this.sanitizeURL=s,this.removeEmptyString=i}var Kt={};"children dangerouslySetInnerHTML defaultValue defaultChecked innerHTML suppressContentEditableWarning suppressHydrationWarning style".split(" ").forEach(function(e){Kt[e]=new va(e,0,!1,e,null,!1,!1)});[["acceptCharset","accept-charset"],["className","class"],["htmlFor","for"],["httpEquiv","http-equiv"]].forEach(function(e){var t=e[0];Kt[t]=new va(t,1,!1,e[1],null,!1,!1)});["contentEditable","draggable","spellCheck","value"].forEach(function(e){Kt[e]=new va(e,2,!1,e.toLowerCase(),null,!1,!1)});["autoReverse","externalResourcesRequired","focusable","preserveAlpha"].forEach(function(e){Kt[e]=new va(e,2,!1,e,null,!1,!1)});"allowFullScreen async autoFocus autoPlay controls default defer disabled disablePictureInPicture disableRemotePlayback formNoValidate hidden loop noModule noValidate open playsInline readOnly required reversed scoped seamless itemScope".split(" ").forEach(function(e){Kt[e]=new va(e,3,!1,e.toLowerCase(),null,!1,!1)});["checked","multiple","muted","selected"].forEach(function(e){Kt[e]=new va(e,3,!0,e,null,!1,!1)});["capture","download"].forEach(function(e){Kt[e]=new va(e,4,!1,e,null,!1,!1)});["cols","rows","size","span"].forEach(function(e){Kt[e]=new va(e,6,!1,e,null,!1,!1)});["rowSpan","start"].forEach(function(e){Kt[e]=new va(e,5,!1,e.toLowerCase(),null,!1,!1)});var Jc=/[\-:]([a-z])/g;function ed(e){return e[1].toUpperCase()}"accent-height alignment-baseline arabic-form baseline-shift cap-height clip-path clip-rule color-interpolation color-interpolation-filters color-profile color-rendering dominant-baseline enable-background fill-opacity fill-rule flood-color flood-opacity font-family font-size font-size-adjust font-stretch font-style font-variant font-weight glyph-name glyph-orientation-horizontal glyph-orientation-vertical horiz-adv-x horiz-origin-x image-rendering letter-spacing lighting-color marker-end marker-mid marker-start overline-position overline-thickness paint-order panose-1 pointer-events rendering-intent shape-rendering stop-color stop-opacity strikethrough-position strikethrough-thickness stroke-dasharray stroke-dashoffset stroke-linecap stroke-linejoin stroke-miterlimit stroke-opacity stroke-width text-anchor text-decoration text-rendering underline-position underline-thickness unicode-bidi unicode-range units-per-em v-alphabetic v-hanging v-ideographic v-mathematical vector-effect vert-adv-y vert-origin-x vert-origin-y word-spacing writing-mode xmlns:xlink x-height".split(" ").forEach(function(e){var t=e.replace(Jc,ed);Kt[t]=new va(t,1,!1,e,null,!1,!1)});"xlink:actuate xlink:arcrole xlink:role xlink:show xlink:title xlink:type".split(" ").forEach(function(e){var t=e.replace(Jc,ed);Kt[t]=new va(t,1,!1,e,"http://www.w3.org/1999/xlink",!1,!1)});["xml:base","xml:lang","xml:space"].forEach(function(e){var t=e.replace(Jc,ed);Kt[t]=new va(t,1,!1,e,"http://www.w3.org/XML/1998/namespace",!1,!1)});["tabIndex","crossOrigin"].forEach(function(e){Kt[e]=new va(e,1,!1,e.toLowerCase(),null,!1,!1)});Kt.xlinkHref=new va("xlinkHref",1,!1,"xlink:href","http://www.w3.org/1999/xlink",!0,!1);["src","href","action","formAction"].forEach(function(e){Kt[e]=new va(e,1,!1,e.toLowerCase(),null,!0,!0)});function td(e,t,a,r){var n=Kt.hasOwnProperty(t)?Kt[t]:null;(n!==null?n.type!==0:r||!(2<t.length)||t[0]!=="o"&&t[0]!=="O"||t[1]!=="n"&&t[1]!=="N")&&(iw(t,a,n,r)&&(a=null),r||n===null?nw(t)&&(a===null?e.removeAttribute(t):e.setAttribute(t,""+a)):n.mustUseProperty?e[n.propertyName]=a===null?n.type===3?!1:"":a:(t=n.attributeName,r=n.attributeNamespace,a===null?e.removeAttribute(t):(n=n.type,a=n===3||n===4&&a===!0?"":""+a,r?e.setAttributeNS(r,t,a):e.setAttribute(t,a))))}var qr=aw.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,yl=Symbol.for("react.element"),Is=Symbol.for("react.portal"),_s=Symbol.for("react.fragment"),ad=Symbol.for("react.strict_mode"),lc=Symbol.for("react.profiler"),jp=Symbol.for("react.provider"),$p=Symbol.for("react.context"),rd=Symbol.for("react.forward_ref"),uc=Symbol.for("react.suspense"),fc=Symbol.for("react.suspense_list"),nd=Symbol.for("react.memo"),rn=Symbol.for("react.lazy");Symbol.for("react.scope");Symbol.for("react.debug_trace_mode");var Kp=Symbol.for("react.offscreen");Symbol.for("react.legacy_hidden");Symbol.for("react.cache");Symbol.for("react.tracing_marker");var Vh=Symbol.iterator;function Mi(e){return e===null||typeof e!="object"?null:(e=Vh&&e[Vh]||e["@@iterator"],typeof e=="function"?e:null)}var vt=Object.assign,Uf;function zi(e){if(Uf===void 0)try{throw Error()}catch(a){var t=a.stack.trim().match(/\n( *(at )?)/);Uf=t&&t[1]||""}return`
 `+Uf+e}var Hf=!1;function Wf(e,t){if(!e||Hf)return"";Hf=!0;var a=Error.prepareStackTrace;Error.prepareStackTrace=void 0;try{if(t)if(t=function(){throw Error()},Object.defineProperty(t.prototype,"props",{set:function(){throw Error()}}),typeof Reflect=="object"&&Reflect.construct){try{Reflect.construct(t,[])}catch(u){var r=u}Reflect.construct(e,[],t)}else{try{t.call()}catch(u){r=u}e.call(t.prototype)}else{try{throw Error()}catch(u){r=u}e()}}catch(u){if(u&&r&&typeof u.stack=="string"){for(var n=u.stack.split(`
@@ -1028,10 +1028,10 @@ function MembersTab({ members, onAdd, onUpdate, onDelete, editing, setEditing })
       <div className="overflow-auto max-h-[70vh] border border-gray-100 rounded">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-gray-200 text-left text-gray-600 bg-gray-50 sticky top-0 z-10">
-            <th className="px-2 py-2">등록번호</th><th className="px-2 py-2">성명</th><th className="px-2 py-2">입금자명/별칭</th><th className="px-2 py-2">개업/전입</th><th className="px-2 py-2">전출</th><th className="px-2 py-2">상태</th><th className="px-2 py-2"></th>
+            <th className="px-2 py-2">등록번호</th><th className="px-2 py-2">성명</th><th className="px-2 py-2">입금자명/별칭</th><th className="px-2 py-2">연락처</th><th className="px-2 py-2">개업/전입</th><th className="px-2 py-2">전출</th><th className="px-2 py-2">상태</th><th className="px-2 py-2"></th>
           </tr></thead>
           <tbody>
-            {filtered.length === 0 && <tr><td colSpan={7} className="text-center text-gray-400 py-8">회원이 없습니다</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={8} className="text-center text-gray-400 py-8">회원이 없습니다</td></tr>}
             {filtered.map(m => editing === m.id ? (
               <MemberEditRow key={m.id} m={m} onSave={(d) => { onUpdate(m.id, d); setEditing(null); }} onCancel={() => setEditing(null)} />
             ) : (
@@ -1039,6 +1039,7 @@ function MembersTab({ members, onAdd, onUpdate, onDelete, editing, setEditing })
                 <td className="px-2 py-2 text-xs text-gray-500">{m.regNo || '-'}</td>
                 <td className="px-2 py-2 font-medium">{m.name}</td>
                 <td className="px-2 py-2 text-xs">{m.depositorName}{(m.aliases||[]).length ? <span className="text-gray-400"> / {(m.aliases||[]).join(', ')}</span> : ''}</td>
+                <td className="px-2 py-2 text-xs whitespace-nowrap">{m.phone || '-'}</td>
                 <td className="px-2 py-2 text-xs">{m.joinDate || '-'}{m.joinDate && <span className="text-gray-400">{monthOf(m.joinDate) >= 7 ? ' (하)' : ' (상)'}</span>}</td>
                 <td className="px-2 py-2 text-xs text-rose-500">{m.leaveDate || '-'}</td>
                 <td className="px-2 py-2 text-xs">{isWithdrawn(m) ? <span className="text-gray-500">탈회</span> : (m.review ? <span className="text-amber-600 font-medium">확인필요<span className="block text-[10px] text-gray-400 font-normal">{(m.note||'').replace('최신명단·','')}</span></span> : <span className="text-emerald-600">현회원</span>)}</td>
@@ -1063,6 +1064,7 @@ function MemberEditRow({ m, onSave, onCancel }) {
       <td className="px-1 py-1"><input className="border border-gray-300 rounded px-1 py-1 w-16 text-sm" value={f.regNo||''} onChange={e=>setF({...f, regNo:e.target.value})} /></td>
       <td className="px-1 py-1"><input className="border border-gray-300 rounded px-1 py-1 w-full text-sm" value={f.name} onChange={e=>setF({...f, name:e.target.value})} /></td>
       <td className="px-1 py-1"><input className="border border-gray-300 rounded px-1 py-1 w-full text-sm mb-1" placeholder="입금자명" value={f.depositorName} onChange={e=>setF({...f, depositorName:e.target.value})} /><input className="border border-gray-300 rounded px-1 py-1 w-full text-sm" placeholder="별칭,별칭2" value={f.aliases} onChange={e=>setF({...f, aliases:e.target.value})} /></td>
+      <td className="px-1 py-1"><input className="border border-gray-300 rounded px-1 py-1 w-32 text-sm" placeholder="연락처" value={f.phone||''} onChange={e=>setF({...f, phone:e.target.value})} /></td>
       <td className="px-1 py-1"><input type="date" className="border border-gray-300 rounded px-1 py-1 text-sm" value={f.joinDate||''} onChange={e=>setF({...f, joinDate:e.target.value})} /></td>
       <td className="px-1 py-1"><input type="date" className="border border-gray-300 rounded px-1 py-1 text-sm" value={f.leaveDate||''} onChange={e=>setF({...f, leaveDate:e.target.value})} /></td>
       <td className="px-1 py-1"><input type="number" className="border border-gray-300 rounded px-1 py-1 w-20 text-sm" placeholder="이월미납" value={f.priorArrears||''} onChange={e=>setF({...f, priorArrears:e.target.value})} title="2020까지 이월 미납" /></td>
@@ -2163,26 +2165,91 @@ createRoot(document.getElementById('root')).render(<App />);
       }
     }
     if (headerIndex < 0) return null;
-    var headers = (data[headerIndex] || []).map(function (cell) { return String(cell).trim(); });
-    function column(keys) {
-      return headers.findIndex(function (header) {
-        return keys.some(function (key) { return header.indexOf(key) !== -1; });
-      });
+    var columnCount = Math.max.apply(null, data.slice(Math.max(0, headerIndex - 2), headerIndex + 1).map(function (row) { return (row || []).length; }));
+    var headers = [];
+    for (var headerColumn = 0; headerColumn < columnCount; headerColumn++) {
+      var parts = [];
+      for (var headerRow = Math.max(0, headerIndex - 2); headerRow <= headerIndex; headerRow++) {
+        var part = String((data[headerRow] || [])[headerColumn] || '').trim();
+        if (part && parts.indexOf(part) === -1) parts.push(part);
+      }
+      headers.push(parts.join(' '));
     }
+    function columns(keys) {
+      var found = [];
+      headers.forEach(function (header, index) {
+        if (keys.some(function (key) { return header.indexOf(key) !== -1; })) found.push(index);
+      });
+      return found;
+    }
+    function column(keys) { var found = columns(keys); return found.length ? found[0] : -1; }
     var regCol = column(['등록번호']);
     var nameCol = column(['성명', '이름']);
-    var mobileCol = column(['휴대전화', '휴대폰', '핸드폰']);
-    var fallbackPhoneCol = column(['전화번호', '연락처']);
-    if (mobileCol < 0 && fallbackPhoneCol < 0 || (regCol < 0 && nameCol < 0)) return null;
+    var mobileCols = columns(['휴대전화', '휴대폰', '핸드폰', '휴대 전화', '휴대 폰']);
+    var fallbackPhoneCols = columns(['전화번호', '연락처', '전화 번호']);
+    if (!mobileCols.length && !fallbackPhoneCols.length || (regCol < 0 && nameCol < 0)) return null;
+    function normalizePhone(value) {
+      var phone = String(value == null ? '' : value).trim();
+      var numberOnly = phone.replace(/[^0-9]/g, '');
+      if (numberOnly.length === 10 && numberOnly.charAt(0) === '1') numberOnly = '0' + numberOnly;
+      if (numberOnly.length === 11) return numberOnly.slice(0, 3) + '-' + numberOnly.slice(3, 7) + '-' + numberOnly.slice(7);
+      return phone;
+    }
+    function firstPhone(row, candidates) {
+      for (var candidateIndex = 0; candidateIndex < candidates.length; candidateIndex++) {
+        var value = normalizePhone(row[candidates[candidateIndex]]);
+        if (value) return value;
+      }
+      return '';
+    }
+    function cellText(row, index) {
+      if (index < 0) return '';
+      var value = row[index];
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        var year = value.getFullYear();
+        var month = String(value.getMonth() + 1).padStart(2, '0');
+        var day = String(value.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+      }
+      return String(value == null ? '' : value).trim();
+    }
+    function firstCell(row, keys) {
+      var matches = columns(keys);
+      for (var matchIndex = 0; matchIndex < matches.length; matchIndex++) {
+        var value = cellText(row, matches[matchIndex]);
+        if (value) return value;
+      }
+      return '';
+    }
     var contacts = [];
     for (var rowIndex = headerIndex + 1; rowIndex < data.length; rowIndex++) {
       var row = data[rowIndex] || [];
-      var mobile = mobileCol >= 0 ? String(row[mobileCol] || '').trim() : '';
-      var fallbackPhone = fallbackPhoneCol >= 0 ? String(row[fallbackPhoneCol] || '').trim() : '';
+      var mobile = firstPhone(row, mobileCols);
+      var fallbackPhone = firstPhone(row, fallbackPhoneCols);
       var phone = mobile || fallbackPhone;
       var regNo = regCol >= 0 ? String(row[regCol] || '').trim() : '';
       var name = nameCol >= 0 ? String(row[nameCol] || '').trim() : '';
-      if (regNo || name) contacts.push({ regNo: regNo, name: name, phone: phone });
+      var rosterFields = {};
+      headers.forEach(function (header, fieldIndex) {
+        var label = String(header || '').trim();
+        var value = cellText(row, fieldIndex);
+        if (!label || !value) return;
+        var uniqueLabel = label;
+        var suffix = 2;
+        while (Object.prototype.hasOwnProperty.call(rosterFields, uniqueLabel)) uniqueLabel = label + ' (' + suffix++ + ')';
+        rosterFields[uniqueLabel] = value;
+      });
+      if (regNo || name) contacts.push({
+        regNo: regNo, name: name, phone: phone, mobilePhone: mobile,
+        officePhone: firstCell(row, ['전화번호', '전화 번호']),
+        fax: firstCell(row, ['팩스번호', '팩스 번호', '팩스']),
+        officeAddress: firstCell(row, ['사무소 주소', '사무소주소', '주소']),
+        registrationDate: firstCell(row, ['등록일']),
+        society: firstCell(row, ['지역세무사회명', '지역세무사회', '지역회']),
+        note1: firstCell(row, ['비고1', '비고 1']), note2: firstCell(row, ['비고2', '비고 2']),
+        rosterFields: rosterFields,
+        phoneSource: mobile ? 'mobile' : fallbackPhone ? 'fallback' : ''
+      });
     }
     return contacts;
   }
@@ -2216,13 +2283,24 @@ createRoot(document.getElementById('root')).render(<App />);
       var ordered = [];
       var seen = new Set();
       var changed = 0;
+      var contactCount = 0;
+      var mobileCount = 0;
       contacts.forEach(function (contact) {
         var member = (contact.regNo && memberByReg.get(contact.regNo)) || (contact.name && memberByName.get(contact.name));
         if (!member || seen.has(member.id)) return;
-        if (contact.phone && contact.phone !== member.phone) {
-          member = Object.assign({}, member, { phone: contact.phone });
-          changed++;
-        }
+        if (contact.phone) contactCount++;
+        if (contact.phoneSource === 'mobile') mobileCount++;
+        var rosterUpdate = {
+          rosterFields: contact.rosterFields, mobilePhone: contact.mobilePhone,
+          officePhone: contact.officePhone, fax: contact.fax,
+          officeAddress: contact.officeAddress, registrationDate: contact.registrationDate,
+          note1: contact.note1, note2: contact.note2
+        };
+        if (contact.society) rosterUpdate.society = contact.society;
+        if (contact.phone) rosterUpdate.phone = contact.phone;
+        var updatedMember = Object.assign({}, member, rosterUpdate);
+        if (JSON.stringify(updatedMember) !== JSON.stringify(member)) changed++;
+        member = updatedMember;
         ordered.push(member);
         seen.add(member.id);
       });
@@ -2234,8 +2312,9 @@ createRoot(document.getElementById('root')).render(<App />);
       var orderChanged = ordered.some(function (member, index) { return !members[index] || members[index].id !== member.id; });
       if (!changed && !presetResult.changed && !orderChanged) return;
       localStorage.setItem(MEMBER_KEY, JSON.stringify(ordered));
-      alert('회원명단의 엑셀 행 순서를 그대로 반영했습니다.'
-        + (changed ? ' 연락처 ' + changed + '건도 함께 반영했습니다.' : '')
+      alert('회원명단의 엑셀 행 순서와 전체 기본정보를 반영했습니다.'
+        + ' 전체 ' + contacts.length + '명 중 연락처 ' + contactCount + '건을 확인했고, 휴대전화 우선 ' + mobileCount + '건을 적용했습니다.'
+        + (changed ? ' 회원 기본정보 ' + changed + '건을 갱신했습니다.' : '')
         + (presetResult.changed ? ' 기본 입금자 별칭 ' + presetResult.changed + '명도 함께 반영했습니다.' : ''));
       location.reload();
     }, 900);
@@ -2379,6 +2458,92 @@ createRoot(document.getElementById('root')).render(<App />);
   }
 
   setInterval(installButton, 800);
+})();
+</script>
+<script>
+/* 회원관리 전체 기본정보 표시 · v42 */
+(function () {
+  var MEMBER_KEY_FOR_PHONE = 'mfm-members-v2';
+  function phoneMembers() {
+    try { return JSON.parse(localStorage.getItem(MEMBER_KEY_FOR_PHONE) || '[]'); } catch (error) { return []; }
+  }
+  function showMemberPhones() {
+    var table = Array.from(document.querySelectorAll('table')).find(function (candidate) {
+      var head = candidate.querySelector('thead');
+      var text = head ? head.textContent : '';
+      return text.indexOf('등록번호') !== -1 && text.indexOf('입금자명/별칭') !== -1 && text.indexOf('상태') !== -1;
+    });
+    if (!table) return;
+    var byReg = {};
+    phoneMembers().forEach(function (member) {
+      var regNo = String(member.regNo || '').trim();
+      if (regNo) byReg[regNo] = member;
+    });
+    var aliasHeader = Array.from(table.querySelectorAll('thead th')).find(function (th) { return th.textContent.indexOf('입금자명/별칭') !== -1; });
+    if (aliasHeader) aliasHeader.textContent = '입금자명/별칭 · 회원정보';
+    Array.from(table.querySelectorAll('tbody tr')).forEach(function (row) {
+      var cells = row.querySelectorAll('td');
+      if (cells.length < 3 || cells[2].querySelector('input')) return;
+      var regNo = String(cells[0].textContent || '').trim();
+      var member = byReg[regNo];
+      var phone = member && member.phone ? String(member.phone) : '-';
+      var phoneLine = cells[2].querySelector('[data-member-phone]');
+      if (!phoneLine) {
+        phoneLine = document.createElement('div');
+        phoneLine.dataset.memberPhone = '1';
+        phoneLine.style.cssText = 'margin-top:4px;color:#475569;font-size:12px;white-space:nowrap';
+        cells[2].appendChild(phoneLine);
+      }
+      phoneLine.textContent = '연락처 · ' + phone;
+      var detailButton = cells[2].querySelector('[data-member-detail]');
+      if (!detailButton) {
+        detailButton = document.createElement('button');
+        detailButton.type = 'button';
+        detailButton.dataset.memberDetail = '1';
+        detailButton.style.cssText = 'margin-top:4px;padding:2px 8px;border:1px solid #cbd5e1;border-radius:5px;color:#334155;background:#fff;font-size:12px';
+        cells[2].appendChild(detailButton);
+      }
+      detailButton.textContent = '회원정보 상세';
+      detailButton.onclick = function () { openMemberDetail(member); };
+    });
+  }
+  function openMemberDetail(member) {
+    var old = document.getElementById('member-roster-detail-modal');
+    if (old) old.remove();
+    var fields = member && member.rosterFields ? member.rosterFields : {};
+    var entries = Object.keys(fields).map(function (key) { return [key, fields[key]]; });
+    if (!entries.length) entries = [
+      ['등록번호', member.regNo || '-'], ['성명', member.name || '-'], ['휴대폰번호', member.mobilePhone || member.phone || '-'],
+      ['전화번호', member.officePhone || '-'], ['팩스번호', member.fax || '-'], ['사무소 주소', member.officeAddress || '-'],
+      ['등록일', member.registrationDate || '-'], ['개업/전입일', member.joinDate || '-'], ['폐업/전출일', member.leaveDate || '-'],
+      ['비고1', member.note1 || '-'], ['비고2', member.note2 || '-']
+    ];
+    var modal = document.createElement('div');
+    modal.id = 'member-roster-detail-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:24px';
+    var panel = document.createElement('div');
+    panel.style.cssText = 'width:min(760px,100%);max-height:85vh;overflow:auto;background:white;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.25)';
+    var heading = document.createElement('div');
+    heading.style.cssText = 'position:sticky;top:0;background:white;border-bottom:1px solid #e2e8f0;padding:18px 22px;display:flex;justify-content:space-between;align-items:center';
+    var title = document.createElement('strong');
+    title.style.fontSize = '18px'; title.textContent = (member.name || '회원') + ' · 회원명단 전체 정보';
+    var close = document.createElement('button');
+    close.type = 'button'; close.textContent = '닫기'; close.style.cssText = 'padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;background:white';
+    close.onclick = function () { modal.remove(); };
+    heading.appendChild(title); heading.appendChild(close); panel.appendChild(heading);
+    var list = document.createElement('dl');
+    list.style.cssText = 'display:grid;grid-template-columns:minmax(140px,220px) 1fr;margin:0;padding:12px 22px 22px';
+    entries.forEach(function (entry) {
+      var dt = document.createElement('dt'); var dd = document.createElement('dd');
+      dt.style.cssText = 'padding:10px 8px;color:#64748b;border-bottom:1px solid #f1f5f9';
+      dd.style.cssText = 'padding:10px 8px;margin:0;color:#0f172a;border-bottom:1px solid #f1f5f9;word-break:break-word';
+      dt.textContent = entry[0]; dd.textContent = entry[1] || '-'; list.appendChild(dt); list.appendChild(dd);
+    });
+    panel.appendChild(list); modal.appendChild(panel);
+    modal.onclick = function (event) { if (event.target === modal) modal.remove(); };
+    document.body.appendChild(modal);
+  }
+  setInterval(showMemberPhones, 500);
 })();
 </script>
 <script>
