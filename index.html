@@ -22,8 +22,8 @@
 </head>
 <body>
 <div id="root"></div>
-<!-- BUILD_DATE: 2026-09-04 09:55 KST | 회원 조회 입금자 표시문구 연동 -->
-<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v39 · 업데이트 2026-09-04 09:55</div>
+<!-- BUILD_DATE: 2026-09-04 10:25 KST | 기본 회비·예외 기간 설정 간소화 -->
+<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v40 · 업데이트 2026-09-04 10:25</div>
 <script>
 (()=>{var b2=Object.create;var ph=Object.defineProperty;var M2=Object.getOwnPropertyDescriptor;var O2=Object.getOwnPropertyNames;var B2=Object.getPrototypeOf,R2=Object.prototype.hasOwnProperty;var Bn=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports);var U2=(e,t,a,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of O2(t))!R2.call(e,n)&&n!==a&&ph(e,n,{get:()=>t[n],enumerable:!(r=M2(t,n))||r.enumerable});return e};var Ai=(e,t,a)=>(a=e!=null?b2(B2(e)):{},U2(t||!e||!e.__esModule?ph(a,"default",{value:e,enumerable:!0}):a,e));var _h=Bn(He=>{"use strict";var Di=Symbol.for("react.element"),H2=Symbol.for("react.portal"),W2=Symbol.for("react.fragment"),V2=Symbol.for("react.strict_mode"),z2=Symbol.for("react.profiler"),q2=Symbol.for("react.provider"),G2=Symbol.for("react.context"),X2=Symbol.for("react.forward_ref"),j2=Symbol.for("react.suspense"),$2=Symbol.for("react.memo"),K2=Symbol.for("react.lazy"),mh=Symbol.iterator;function Y2(e){return e===null||typeof e!="object"?null:(e=mh&&e[mh]||e["@@iterator"],typeof e=="function"?e:null)}var vh={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}},wh=Object.assign,Sh={};function ys(e,t,a){this.props=e,this.context=t,this.refs=Sh,this.updater=a||vh}ys.prototype.isReactComponent={};ys.prototype.setState=function(e,t){if(typeof e!="object"&&typeof e!="function"&&e!=null)throw Error("setState(...): takes an object of state variables to update or a function which returns an object of state variables.");this.updater.enqueueSetState(this,e,t,"setState")};ys.prototype.forceUpdate=function(e){this.updater.enqueueForceUpdate(this,e,"forceUpdate")};function yh(){}yh.prototype=ys.prototype;function _f(e,t,a){this.props=e,this.context=t,this.refs=Sh,this.updater=a||vh}var Tf=_f.prototype=new yh;Tf.constructor=_f;wh(Tf,ys.prototype);Tf.isPureReactComponent=!0;var xh=Array.isArray,kh=Object.prototype.hasOwnProperty,Ef={current:null},Lh={key:!0,ref:!0,__self:!0,__source:!0};function Ch(e,t,a){var r,n={},s=null,i=null;if(t!=null)for(r in t.ref!==void 0&&(i=t.ref),t.key!==void 0&&(s=""+t.key),t)kh.call(t,r)&&!Lh.hasOwnProperty(r)&&(n[r]=t[r]);var o=arguments.length-2;if(o===1)n.children=a;else if(1<o){for(var l=Array(o),u=0;u<o;u++)l[u]=arguments[u+2];n.children=l}if(e&&e.defaultProps)for(r in o=e.defaultProps,o)n[r]===void 0&&(n[r]=o[r]);return{$$typeof:Di,type:e,key:s,ref:i,props:n,_owner:Ef.current}}function Q2(e,t){return{$$typeof:Di,type:e.type,key:t,ref:e.ref,props:e.props,_owner:e._owner}}function Ff(e){return typeof e=="object"&&e!==null&&e.$$typeof===Di}function Z2(e){var t={"=":"=0",":":"=2"};return"$"+e.replace(/[=:]/g,function(a){return t[a]})}var gh=/\/+/g;function If(e,t){return typeof e=="object"&&e!==null&&e.key!=null?Z2(""+e.key):t.toString(36)}function pl(e,t,a,r,n){var s=typeof e;(s==="undefined"||s==="boolean")&&(e=null);var i=!1;if(e===null)i=!0;else switch(s){case"string":case"number":i=!0;break;case"object":switch(e.$$typeof){case Di:case H2:i=!0}}if(i)return i=e,n=n(i),e=r===""?"."+If(i,0):r,xh(n)?(a="",e!=null&&(a=e.replace(gh,"$&/")+"/"),pl(n,t,a,"",function(u){return u})):n!=null&&(Ff(n)&&(n=Q2(n,a+(!n.key||i&&i.key===n.key?"":(""+n.key).replace(gh,"$&/")+"/")+e)),t.push(n)),1;if(i=0,r=r===""?".":r+":",xh(e))for(var o=0;o<e.length;o++){s=e[o];var l=r+If(s,o);i+=pl(s,t,a,l,n)}else if(l=Y2(e),typeof l=="function")for(e=l.call(e),o=0;!(s=e.next()).done;)s=s.value,l=r+If(s,o++),i+=pl(s,t,a,l,n);else if(s==="object")throw t=String(e),Error("Objects are not valid as a React child (found: "+(t==="[object Object]"?"object with keys {"+Object.keys(e).join(", ")+"}":t)+"). If you meant to render a collection of children, use an array instead.");return i}function hl(e,t,a){if(e==null)return e;var r=[],n=0;return pl(e,r,"","",function(s){return t.call(a,s,n++)}),r}function J2(e){if(e._status===-1){var t=e._result;t=t(),t.then(function(a){(e._status===0||e._status===-1)&&(e._status=1,e._result=a)},function(a){(e._status===0||e._status===-1)&&(e._status=2,e._result=a)}),e._status===-1&&(e._status=0,e._result=t)}if(e._status===1)return e._result.default;throw e._result}var ma={current:null},ml={transition:null},ew={ReactCurrentDispatcher:ma,ReactCurrentBatchConfig:ml,ReactCurrentOwner:Ef};function Ih(){throw Error("act(...) is not supported in production builds of React.")}He.Children={map:hl,forEach:function(e,t,a){hl(e,function(){t.apply(this,arguments)},a)},count:function(e){var t=0;return hl(e,function(){t++}),t},toArray:function(e){return hl(e,function(t){return t})||[]},only:function(e){if(!Ff(e))throw Error("React.Children.only expected to receive a single React element child.");return e}};He.Component=ys;He.Fragment=W2;He.Profiler=z2;He.PureComponent=_f;He.StrictMode=V2;He.Suspense=j2;He.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED=ew;He.act=Ih;He.cloneElement=function(e,t,a){if(e==null)throw Error("React.cloneElement(...): The argument must be a React element, but you passed "+e+".");var r=wh({},e.props),n=e.key,s=e.ref,i=e._owner;if(t!=null){if(t.ref!==void 0&&(s=t.ref,i=Ef.current),t.key!==void 0&&(n=""+t.key),e.type&&e.type.defaultProps)var o=e.type.defaultProps;for(l in t)kh.call(t,l)&&!Lh.hasOwnProperty(l)&&(r[l]=t[l]===void 0&&o!==void 0?o[l]:t[l])}var l=arguments.length-2;if(l===1)r.children=a;else if(1<l){o=Array(l);for(var u=0;u<l;u++)o[u]=arguments[u+2];r.children=o}return{$$typeof:Di,type:e.type,key:n,ref:s,props:r,_owner:i}};He.createContext=function(e){return e={$$typeof:G2,_currentValue:e,_currentValue2:e,_threadCount:0,Provider:null,Consumer:null,_defaultValue:null,_globalName:null},e.Provider={$$typeof:q2,_context:e},e.Consumer=e};He.createElement=Ch;He.createFactory=function(e){var t=Ch.bind(null,e);return t.type=e,t};He.createRef=function(){return{current:null}};He.forwardRef=function(e){return{$$typeof:X2,render:e}};He.isValidElement=Ff;He.lazy=function(e){return{$$typeof:K2,_payload:{_status:-1,_result:e},_init:J2}};He.memo=function(e,t){return{$$typeof:$2,type:e,compare:t===void 0?null:t}};He.startTransition=function(e){var t=ml.transition;ml.transition={};try{e()}finally{ml.transition=t}};He.unstable_act=Ih;He.useCallback=function(e,t){return ma.current.useCallback(e,t)};He.useContext=function(e){return ma.current.useContext(e)};He.useDebugValue=function(){};He.useDeferredValue=function(e){return ma.current.useDeferredValue(e)};He.useEffect=function(e,t){return ma.current.useEffect(e,t)};He.useId=function(){return ma.current.useId()};He.useImperativeHandle=function(e,t,a){return ma.current.useImperativeHandle(e,t,a)};He.useInsertionEffect=function(e,t){return ma.current.useInsertionEffect(e,t)};He.useLayoutEffect=function(e,t){return ma.current.useLayoutEffect(e,t)};He.useMemo=function(e,t){return ma.current.useMemo(e,t)};He.useReducer=function(e,t,a){return ma.current.useReducer(e,t,a)};He.useRef=function(e){return ma.current.useRef(e)};He.useState=function(e){return ma.current.useState(e)};He.useSyncExternalStore=function(e,t,a){return ma.current.useSyncExternalStore(e,t,a)};He.useTransition=function(){return ma.current.useTransition()};He.version="18.3.1"});var ks=Bn((qD,Th)=>{"use strict";Th.exports=_h()});var Bh=Bn(st=>{"use strict";function Nf(e,t){var a=e.length;e.push(t);e:for(;0<a;){var r=a-1>>>1,n=e[r];if(0<xl(n,t))e[r]=t,e[a]=n,a=r;else break e}}function nr(e){return e.length===0?null:e[0]}function vl(e){if(e.length===0)return null;var t=e[0],a=e.pop();if(a!==t){e[0]=a;e:for(var r=0,n=e.length,s=n>>>1;r<s;){var i=2*(r+1)-1,o=e[i],l=i+1,u=e[l];if(0>xl(o,a))l<n&&0>xl(u,o)?(e[r]=u,e[l]=a,r=l):(e[r]=o,e[i]=a,r=i);else if(l<n&&0>xl(u,a))e[r]=u,e[l]=a,r=l;else break e}}return t}function xl(e,t){var a=e.sortIndex-t.sortIndex;return a!==0?a:e.id-t.id}typeof performance=="object"&&typeof performance.now=="function"?(Eh=performance,st.unstable_now=function(){return Eh.now()}):(Af=Date,Fh=Af.now(),st.unstable_now=function(){return Af.now()-Fh});var Eh,Af,Fh,vr=[],tn=[],tw=1,za=null,ea=3,wl=!1,Rn=!1,Ni=!1,Ph=typeof setTimeout=="function"?setTimeout:null,Nh=typeof clearTimeout=="function"?clearTimeout:null,Ah=typeof setImmediate<"u"?setImmediate:null;typeof navigator<"u"&&navigator.scheduling!==void 0&&navigator.scheduling.isInputPending!==void 0&&navigator.scheduling.isInputPending.bind(navigator.scheduling);function bf(e){for(var t=nr(tn);t!==null;){if(t.callback===null)vl(tn);else if(t.startTime<=e)vl(tn),t.sortIndex=t.expirationTime,Nf(vr,t);else break;t=nr(tn)}}function Mf(e){if(Ni=!1,bf(e),!Rn)if(nr(vr)!==null)Rn=!0,Bf(Of);else{var t=nr(tn);t!==null&&Rf(Mf,t.startTime-e)}}function Of(e,t){Rn=!1,Ni&&(Ni=!1,Nh(bi),bi=-1),wl=!0;var a=ea;try{for(bf(t),za=nr(vr);za!==null&&(!(za.expirationTime>t)||e&&!Oh());){var r=za.callback;if(typeof r=="function"){za.callback=null,ea=za.priorityLevel;var n=r(za.expirationTime<=t);t=st.unstable_now(),typeof n=="function"?za.callback=n:za===nr(vr)&&vl(vr),bf(t)}else vl(vr);za=nr(vr)}if(za!==null)var s=!0;else{var i=nr(tn);i!==null&&Rf(Mf,i.startTime-t),s=!1}return s}finally{za=null,ea=a,wl=!1}}var Sl=!1,gl=null,bi=-1,bh=5,Mh=-1;function Oh(){return!(st.unstable_now()-Mh<bh)}function Df(){if(gl!==null){var e=st.unstable_now();Mh=e;var t=!0;try{t=gl(!0,e)}finally{t?Pi():(Sl=!1,gl=null)}}else Sl=!1}var Pi;typeof Ah=="function"?Pi=function(){Ah(Df)}:typeof MessageChannel<"u"?(Pf=new MessageChannel,Dh=Pf.port2,Pf.port1.onmessage=Df,Pi=function(){Dh.postMessage(null)}):Pi=function(){Ph(Df,0)};var Pf,Dh;function Bf(e){gl=e,Sl||(Sl=!0,Pi())}function Rf(e,t){bi=Ph(function(){e(st.unstable_now())},t)}st.unstable_IdlePriority=5;st.unstable_ImmediatePriority=1;st.unstable_LowPriority=4;st.unstable_NormalPriority=3;st.unstable_Profiling=null;st.unstable_UserBlockingPriority=2;st.unstable_cancelCallback=function(e){e.callback=null};st.unstable_continueExecution=function(){Rn||wl||(Rn=!0,Bf(Of))};st.unstable_forceFrameRate=function(e){0>e||125<e?console.error("forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported"):bh=0<e?Math.floor(1e3/e):5};st.unstable_getCurrentPriorityLevel=function(){return ea};st.unstable_getFirstCallbackNode=function(){return nr(vr)};st.unstable_next=function(e){switch(ea){case 1:case 2:case 3:var t=3;break;default:t=ea}var a=ea;ea=t;try{return e()}finally{ea=a}};st.unstable_pauseExecution=function(){};st.unstable_requestPaint=function(){};st.unstable_runWithPriority=function(e,t){switch(e){case 1:case 2:case 3:case 4:case 5:break;default:e=3}var a=ea;ea=e;try{return t()}finally{ea=a}};st.unstable_scheduleCallback=function(e,t,a){var r=st.unstable_now();switch(typeof a=="object"&&a!==null?(a=a.delay,a=typeof a=="number"&&0<a?r+a:r):a=r,e){case 1:var n=-1;break;case 2:n=250;break;case 5:n=1073741823;break;case 4:n=1e4;break;default:n=5e3}return n=a+n,e={id:tw++,callback:t,priorityLevel:e,startTime:a,expirationTime:n,sortIndex:-1},a>r?(e.sortIndex=a,Nf(tn,e),nr(vr)===null&&e===nr(tn)&&(Ni?(Nh(bi),bi=-1):Ni=!0,Rf(Mf,a-r))):(e.sortIndex=n,Nf(vr,e),Rn||wl||(Rn=!0,Bf(Of))),e};st.unstable_shouldYield=Oh;st.unstable_wrapCallback=function(e){var t=ea;return function(){var a=ea;ea=t;try{return e.apply(this,arguments)}finally{ea=a}}}});var Uh=Bn((XD,Rh)=>{"use strict";Rh.exports=Bh()});var zx=Bn(Oa=>{"use strict";var aw=ks(),ba=Uh();function ue(e){for(var t="https://reactjs.org/docs/error-decoder.html?invariant="+e,a=1;a<arguments.length;a++)t+="&args[]="+encodeURIComponent(arguments[a]);return"Minified React error #"+e+"; visit "+t+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings."}var Xp=new Set,ao={};function Qn(e,t){zs(e,t),zs(e+"Capture",t)}function zs(e,t){for(ao[e]=t,e=0;e<t.length;e++)Xp.add(t[e])}var Hr=!(typeof window>"u"||typeof window.document>"u"||typeof window.document.createElement>"u"),oc=Object.prototype.hasOwnProperty,rw=/^[:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD][:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\-.0-9\u00B7\u0300-\u036F\u203F-\u2040]*$/,Hh={},Wh={};function nw(e){return oc.call(Wh,e)?!0:oc.call(Hh,e)?!1:rw.test(e)?Wh[e]=!0:(Hh[e]=!0,!1)}function sw(e,t,a,r){if(a!==null&&a.type===0)return!1;switch(typeof t){case"function":case"symbol":return!0;case"boolean":return r?!1:a!==null?!a.acceptsBooleans:(e=e.toLowerCase().slice(0,5),e!=="data-"&&e!=="aria-");default:return!1}}function iw(e,t,a,r){if(t===null||typeof t>"u"||sw(e,t,a,r))return!0;if(r)return!1;if(a!==null)switch(a.type){case 3:return!t;case 4:return t===!1;case 5:return isNaN(t);case 6:return isNaN(t)||1>t}return!1}function va(e,t,a,r,n,s,i){this.acceptsBooleans=t===2||t===3||t===4,this.attributeName=r,this.attributeNamespace=n,this.mustUseProperty=a,this.propertyName=e,this.type=t,this.sanitizeURL=s,this.removeEmptyString=i}var Kt={};"children dangerouslySetInnerHTML defaultValue defaultChecked innerHTML suppressContentEditableWarning suppressHydrationWarning style".split(" ").forEach(function(e){Kt[e]=new va(e,0,!1,e,null,!1,!1)});[["acceptCharset","accept-charset"],["className","class"],["htmlFor","for"],["httpEquiv","http-equiv"]].forEach(function(e){var t=e[0];Kt[t]=new va(t,1,!1,e[1],null,!1,!1)});["contentEditable","draggable","spellCheck","value"].forEach(function(e){Kt[e]=new va(e,2,!1,e.toLowerCase(),null,!1,!1)});["autoReverse","externalResourcesRequired","focusable","preserveAlpha"].forEach(function(e){Kt[e]=new va(e,2,!1,e,null,!1,!1)});"allowFullScreen async autoFocus autoPlay controls default defer disabled disablePictureInPicture disableRemotePlayback formNoValidate hidden loop noModule noValidate open playsInline readOnly required reversed scoped seamless itemScope".split(" ").forEach(function(e){Kt[e]=new va(e,3,!1,e.toLowerCase(),null,!1,!1)});["checked","multiple","muted","selected"].forEach(function(e){Kt[e]=new va(e,3,!0,e,null,!1,!1)});["capture","download"].forEach(function(e){Kt[e]=new va(e,4,!1,e,null,!1,!1)});["cols","rows","size","span"].forEach(function(e){Kt[e]=new va(e,6,!1,e,null,!1,!1)});["rowSpan","start"].forEach(function(e){Kt[e]=new va(e,5,!1,e.toLowerCase(),null,!1,!1)});var Jc=/[\-:]([a-z])/g;function ed(e){return e[1].toUpperCase()}"accent-height alignment-baseline arabic-form baseline-shift cap-height clip-path clip-rule color-interpolation color-interpolation-filters color-profile color-rendering dominant-baseline enable-background fill-opacity fill-rule flood-color flood-opacity font-family font-size font-size-adjust font-stretch font-style font-variant font-weight glyph-name glyph-orientation-horizontal glyph-orientation-vertical horiz-adv-x horiz-origin-x image-rendering letter-spacing lighting-color marker-end marker-mid marker-start overline-position overline-thickness paint-order panose-1 pointer-events rendering-intent shape-rendering stop-color stop-opacity strikethrough-position strikethrough-thickness stroke-dasharray stroke-dashoffset stroke-linecap stroke-linejoin stroke-miterlimit stroke-opacity stroke-width text-anchor text-decoration text-rendering underline-position underline-thickness unicode-bidi unicode-range units-per-em v-alphabetic v-hanging v-ideographic v-mathematical vector-effect vert-adv-y vert-origin-x vert-origin-y word-spacing writing-mode xmlns:xlink x-height".split(" ").forEach(function(e){var t=e.replace(Jc,ed);Kt[t]=new va(t,1,!1,e,null,!1,!1)});"xlink:actuate xlink:arcrole xlink:role xlink:show xlink:title xlink:type".split(" ").forEach(function(e){var t=e.replace(Jc,ed);Kt[t]=new va(t,1,!1,e,"http://www.w3.org/1999/xlink",!1,!1)});["xml:base","xml:lang","xml:space"].forEach(function(e){var t=e.replace(Jc,ed);Kt[t]=new va(t,1,!1,e,"http://www.w3.org/XML/1998/namespace",!1,!1)});["tabIndex","crossOrigin"].forEach(function(e){Kt[e]=new va(e,1,!1,e.toLowerCase(),null,!1,!1)});Kt.xlinkHref=new va("xlinkHref",1,!1,"xlink:href","http://www.w3.org/1999/xlink",!0,!1);["src","href","action","formAction"].forEach(function(e){Kt[e]=new va(e,1,!1,e.toLowerCase(),null,!0,!0)});function td(e,t,a,r){var n=Kt.hasOwnProperty(t)?Kt[t]:null;(n!==null?n.type!==0:r||!(2<t.length)||t[0]!=="o"&&t[0]!=="O"||t[1]!=="n"&&t[1]!=="N")&&(iw(t,a,n,r)&&(a=null),r||n===null?nw(t)&&(a===null?e.removeAttribute(t):e.setAttribute(t,""+a)):n.mustUseProperty?e[n.propertyName]=a===null?n.type===3?!1:"":a:(t=n.attributeName,r=n.attributeNamespace,a===null?e.removeAttribute(t):(n=n.type,a=n===3||n===4&&a===!0?"":""+a,r?e.setAttributeNS(r,t,a):e.setAttribute(t,a))))}var qr=aw.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,yl=Symbol.for("react.element"),Is=Symbol.for("react.portal"),_s=Symbol.for("react.fragment"),ad=Symbol.for("react.strict_mode"),lc=Symbol.for("react.profiler"),jp=Symbol.for("react.provider"),$p=Symbol.for("react.context"),rd=Symbol.for("react.forward_ref"),uc=Symbol.for("react.suspense"),fc=Symbol.for("react.suspense_list"),nd=Symbol.for("react.memo"),rn=Symbol.for("react.lazy");Symbol.for("react.scope");Symbol.for("react.debug_trace_mode");var Kp=Symbol.for("react.offscreen");Symbol.for("react.legacy_hidden");Symbol.for("react.cache");Symbol.for("react.tracing_marker");var Vh=Symbol.iterator;function Mi(e){return e===null||typeof e!="object"?null:(e=Vh&&e[Vh]||e["@@iterator"],typeof e=="function"?e:null)}var vt=Object.assign,Uf;function zi(e){if(Uf===void 0)try{throw Error()}catch(a){var t=a.stack.trim().match(/\n( *(at )?)/);Uf=t&&t[1]||""}return`
 `+Uf+e}var Hf=!1;function Wf(e,t){if(!e||Hf)return"";Hf=!0;var a=Error.prepareStackTrace;Error.prepareStackTrace=void 0;try{if(t)if(t=function(){throw Error()},Object.defineProperty(t.prototype,"props",{set:function(){throw Error()}}),typeof Reflect=="object"&&Reflect.construct){try{Reflect.construct(t,[])}catch(u){var r=u}Reflect.construct(e,[],t)}else{try{t.call()}catch(u){r=u}e.call(t.prototype)}else{try{throw Error()}catch(u){r=u}e()}}catch(u){if(u&&r&&typeof u.stack=="string"){for(var n=u.stack.split(`
@@ -256,7 +256,7 @@ import { Users, Settings, Upload, Grid3x3, Bell, Download, Plus, Trash2, Edit2, 
 
 const SK = { M: 'mfm-members-v2', F: 'mfm-fees-v2', T: 'mfm-tx-v2', C: 'mfm-config-v2', U: 'mfm-upload-v2', RU: 'mfm-roster-upload-v2' };
 
-const DEFAULT_FEE = (y) => (y >= 2020 && y <= 2022) ? 100000 : 200000;
+const DEFAULT_FEE = () => 200000;
 const FEE_START = 2011;
 const LEDGER_CUTOFF_YEAR = 2020; // 옛 장부는 이 연도까지만 신뢰(이후는 통장 기준)
 
@@ -279,7 +279,7 @@ const DEFAULT_MSG = "[부천지역세무사회 회비안내]\n\n세무사님, �
 
 function buildDefaultFees(from, to) {
   const arr = [];
-  for (let y = from; y <= to; y++) arr.push({ year: y, amount: DEFAULT_FEE(y) });
+  for (let y = Math.max(from, 2020); y <= Math.min(to, 2022); y++) arr.push({ year: y, amount: 100000 });
   return arr;
 }
 
@@ -794,7 +794,7 @@ export default function App() {
         {tab === 'status' && <StatusGrid members={currentMembers} yearRange={yearRange} allocations={allocations} fees={fees} cellMode={config.cellMode} setCellMode={(m) => setConfig({ ...config, cellMode: m })} onCellClick={(m, yr) => setModal({ type: 'cell', member: m, yearData: yr })} onMemberClick={(m) => setModal({ type: 'story', member: m })} />}
         {tab === 'members' && <MembersTab members={currentMembers} onAdd={addMember} onUpdate={updateMember} onDelete={deleteMember} editing={editing} setEditing={setEditing} />}
         {tab === 'import' && <ImportTab onImportLedger={importLedger} onImportRoster={importRoster} memberCount={members.length} onReset={() => setResetConfirm(true)} />}
-        {tab === 'fees' && <><SyncCard config={config} setConfig={setConfig} lastSync={lastSync} syncMsg={syncMsg} onTest={() => pushToDrive(true)} /><BackupCard onExport={exportBackup} onImport={importBackup} memberCount={members.length} txCount={tx.length} /><FeesTab fees={fees} setFeeForYear={setFeeForYear} deleteFee={deleteFee} /></>}
+        {tab === 'fees' && <><SyncCard config={config} setConfig={setConfig} lastSync={lastSync} syncMsg={syncMsg} onTest={() => pushToDrive(true)} /><BackupCard onExport={exportBackup} onImport={importBackup} memberCount={members.length} txCount={tx.length} /><FeesTab fees={fees} setFees={setFees} /></>}
         {tab === 'upload' && <UploadTab tx={tx} setTx={setTx} members={members} aliasMap={aliasMap} regIndex={regIndex} nameIndex={nameIndex} uploadMeta={uploadMeta} setUploadMeta={setUploadMeta} onAssign={assignTx} onPending={unassignTx} onExclude={excludeTx} onRestore={restoreTx} onDeleteTx={deleteTx} />}
         {tab === 'overdue' && <OverdueTab members={members} allocations={allocations} config={config} setConfig={setConfig} />}
         {tab === 'withdrawn' && <WithdrawnTab members={withdrawnMembers} allocations={allocations} onUpdate={updateMember} onDelete={deleteMember} />}
@@ -1288,28 +1288,38 @@ function ImportTab({ onImportLedger, onImportRoster, memberCount, onReset }) {
 }
 
 // ============ Fees Tab ============
-function FeesTab({ fees, setFeeForYear, deleteFee }) {
-  const [ny, setNy] = useState(new Date().getFullYear());
-  const [na, setNa] = useState(200000);
-  const [edits, setEdits] = useState({});
-  const sorted = [...fees].sort((a, b) => a.year - b.year);
+function FeesTab({ fees, setFees }) {
+  const [startYear, setStartYear] = useState(2020);
+  const [endYear, setEndYear] = useState(2022);
+  const [amount, setAmount] = useState(100000);
+  const exceptions = [...fees].filter(f => Number(f.amount) !== 200000).sort((a, b) => a.year - b.year);
+  const addException = () => {
+    const from = Number(startYear), to = Number(endYear), fee = Number(amount);
+    if (!from || !to || !fee || from > to) return;
+    setFees(previous => {
+      const kept = previous.filter(item => item.year < from || item.year > to);
+      for (let year = from; year <= to; year++) kept.push({ year, amount: fee });
+      return kept.sort((a, b) => a.year - b.year);
+    });
+  };
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 max-w-2xl">
       <h3 className="font-semibold mb-3">연도별 회비</h3>
-      <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-800">회비 규칙 자동 적용: <b>2011년부터 20만원</b>, <b>2020~2022년만 10만원</b>. 하반기 입회 첫 해는 자동 절반. 특정 연도만 예외로 바꾸려면 아래에서 수정하세요.</div>
-      <div className="text-sm font-medium mb-2">개별 연도 수정 (필요 시)</div>
+      <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-900">기본 회비 <b>200,000원</b> · 하반기 입회 첫 해는 자동 절반</div>
+      <div className="text-sm font-medium mb-2">예외 기간</div>
       <div className="flex gap-2 mb-4 items-end">
-        <div><label className="text-xs text-gray-600">연도</label><input type="number" value={ny} onChange={e=>setNy(e.target.value)} className="block border border-gray-300 rounded px-2 py-1.5 w-24 text-sm" /></div>
-        <div><label className="text-xs text-gray-600">회비(원)</label><input type="number" value={na} onChange={e=>setNa(e.target.value)} className="block border border-gray-300 rounded px-2 py-1.5 w-36 text-sm" /></div>
-        <button onClick={() => { if (ny && na) setFeeForYear(Number(ny), Number(na)); }} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm">추가/수정</button>
+        <div><label className="text-xs text-gray-600">시작 연도</label><input type="number" value={startYear} onChange={e=>setStartYear(e.target.value)} className="block border border-gray-300 rounded px-2 py-1.5 w-24 text-sm" /></div>
+        <div><label className="text-xs text-gray-600">종료 연도</label><input type="number" value={endYear} onChange={e=>setEndYear(e.target.value)} className="block border border-gray-300 rounded px-2 py-1.5 w-24 text-sm" /></div>
+        <div><label className="text-xs text-gray-600">회비(원)</label><input type="number" value={amount} onChange={e=>setAmount(e.target.value)} className="block border border-gray-300 rounded px-2 py-1.5 w-32 text-sm" /></div>
+        <button onClick={addException} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm">예외 추가</button>
       </div>
       <table className="w-full text-sm">
-        <thead><tr className="border-b border-gray-200 text-left text-gray-600"><th className="px-2 py-2">연도</th><th className="px-2 py-2">회비</th><th className="px-2 py-2"></th></tr></thead>
-        <tbody>{sorted.map(f => (
+        <thead><tr className="border-b border-gray-200 text-left text-gray-600"><th className="px-2 py-2">예외 연도</th><th className="px-2 py-2">회비</th><th className="px-2 py-2"></th></tr></thead>
+        <tbody>{exceptions.map(f => (
           <tr key={f.year} className="border-b border-gray-100">
             <td className="px-2 py-2 font-medium">{f.year}년</td>
-            <td className="px-2 py-2"><div className="flex items-center gap-2"><input type="number" defaultValue={f.amount} onChange={e=>setEdits({...edits, [f.year]: e.target.value})} className="border border-gray-300 rounded px-2 py-1 w-32 text-sm" /><span className="text-gray-500">원</span>{edits[f.year] !== undefined && Number(edits[f.year]) !== f.amount && <button onClick={() => { setFeeForYear(f.year, Number(edits[f.year])); const e2 = {...edits}; delete e2[f.year]; setEdits(e2); }} className="text-emerald-600 text-xs px-2 py-1 hover:bg-emerald-50 rounded">저장</button>}</div></td>
-            <td className="px-2 py-2 text-right"><button onClick={() => deleteFee(f.year)} className="text-gray-500 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button></td>
+            <td className="px-2 py-2">{fmt(f.amount)}원</td>
+            <td className="px-2 py-2 text-right"><button onClick={() => setFees(previous => previous.filter(item => item.year !== f.year))} className="text-gray-500 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button></td>
           </tr>
         ))}</tbody>
       </table>
@@ -2369,6 +2379,77 @@ createRoot(document.getElementById('root')).render(<App />);
   }
 
   setInterval(installButton, 800);
+})();
+</script>
+<script>
+/* 회비설정 간소화 · v40: 기본 20만원, 예외 기간만 관리 */
+(function () {
+  var STORAGE_KEY = 'mfm-fees-v2';
+  var BASE_FEE = 200000;
+
+  function readFees() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (error) { return []; }
+  }
+  function exceptionGroups() {
+    var values = readFees().filter(function (item) { return Number(item.amount) !== BASE_FEE; }).sort(function (a, b) { return a.year - b.year; });
+    var groups = [];
+    values.forEach(function (item) {
+      var last = groups[groups.length - 1];
+      if (last && last.end + 1 === Number(item.year) && last.amount === Number(item.amount)) last.end = Number(item.year);
+      else groups.push({ start: Number(item.year), end: Number(item.year), amount: Number(item.amount) });
+    });
+    return groups;
+  }
+  function saveGroups(groups) {
+    var byYear = {};
+    [2020, 2021, 2022].forEach(function (year) { byYear[year] = BASE_FEE; });
+    groups.forEach(function (group) {
+      for (var year = group.start; year <= group.end; year++) byYear[year] = group.amount;
+    });
+    var fees = Object.keys(byYear).map(function (year) { return { year: Number(year), amount: Number(byYear[year]) }; }).sort(function (a, b) { return a.year - b.year; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(fees));
+    location.reload();
+  }
+  function field(label, value, name, width) {
+    return '<label style="display:block;color:#475569;font-size:12px">' + label + '<input name="' + name + '" type="number" value="' + value + '" style="display:block;width:' + width + ';margin-top:5px;border:1px solid #cbd5e1;border-radius:7px;padding:8px 10px;font-size:14px"></label>';
+  }
+  function renderRows(box, groups) {
+    var rows = box.querySelector('#simple-fee-rows');
+    rows.innerHTML = groups.length ? groups.map(function (group, index) {
+      return '<div style="display:grid;grid-template-columns:1fr 1fr 1.2fr auto;gap:10px;align-items:center;padding:11px 0;border-top:1px solid #eef2f7"><b>' + group.start + '년</b><b>' + group.end + '년</b><span>' + Number(group.amount).toLocaleString('ko-KR') + '원</span><button type="button" data-remove="' + index + '" style="border:0;background:transparent;color:#e11d48;padding:7px;cursor:pointer">삭제</button></div>';
+    }).join('') : '<div style="padding:18px 0;color:#94a3b8">등록된 예외 기간이 없습니다.</div>';
+  }
+  function install() {
+    var heading = Array.from(document.querySelectorAll('h3')).find(function (node) { return node.textContent.trim() === '연도별 회비'; });
+    if (!heading) return;
+    var box = heading.closest('.bg-white');
+    if (!box || box.dataset.simpleFees === '1') return;
+    box.dataset.simpleFees = '1';
+    var groups = exceptionGroups();
+    if (!groups.length) groups = [{ start: 2020, end: 2022, amount: 100000 }];
+    box.innerHTML = '<h3 class="font-semibold mb-3">연도별 회비</h3>'
+      + '<div style="padding:14px 16px;border-radius:9px;background:#eef2ff;color:#312e81;margin-bottom:20px">기본 회비 <b>200,000원</b> · 하반기 입회 첫 해는 자동 절반</div>'
+      + '<div style="display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:18px">' + field('시작 연도', 2020, 'start', '105px') + field('종료 연도', 2022, 'end', '105px') + field('회비(원)', 100000, 'amount', '140px') + '<button id="simple-fee-add" type="button" style="border:0;background:#4f46e5;color:white;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer">예외 추가</button></div>'
+      + '<div style="font-weight:600;margin-bottom:7px">예외 기간</div><div style="display:grid;grid-template-columns:1fr 1fr 1.2fr auto;gap:10px;color:#64748b;font-size:13px;padding:8px 0"><span>시작 연도</span><span>종료 연도</span><span>회비</span><span></span></div><div id="simple-fee-rows"></div>'
+      + '<button id="simple-fee-save" type="button" style="margin-top:18px;border:0;background:#173f72;color:#fff;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer">설정 저장</button>';
+    renderRows(box, groups);
+    box.querySelector('#simple-fee-add').onclick = function () {
+      var start = Number(box.querySelector('[name=start]').value), end = Number(box.querySelector('[name=end]').value), amount = Number(box.querySelector('[name=amount]').value);
+      if (!start || !end || start > end || !amount) { alert('시작 연도, 종료 연도와 회비를 확인해 주세요.'); return; }
+      groups = groups.filter(function (group) { return group.end < start || group.start > end; });
+      groups.push({ start: start, end: end, amount: amount });
+      groups.sort(function (a, b) { return a.start - b.start; });
+      renderRows(box, groups);
+    };
+    box.querySelector('#simple-fee-rows').onclick = function (event) {
+      var button = event.target.closest('[data-remove]');
+      if (!button) return;
+      groups.splice(Number(button.dataset.remove), 1);
+      renderRows(box, groups);
+    };
+    box.querySelector('#simple-fee-save').onclick = function () { saveGroups(groups); };
+  }
+  setInterval(install, 500);
 })();
 </script>
 </body>
