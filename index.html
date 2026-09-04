@@ -6,57 +6,97 @@
 <title>부천세무사회 회비관리</title>
 <style>
 html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f8fafc;color:#0f172a}
-#v53-loading{padding:40px;text-align:center;font-size:15px;color:#64748b}
-#v53-error{display:none;max-width:760px;margin:48px auto;padding:22px;border:1px solid #fecaca;border-radius:12px;background:#fff;color:#991b1b;line-height:1.7}
+#boot{padding:42px;text-align:center;color:#64748b;font-size:15px}
+#error{display:none;max-width:820px;margin:48px auto;padding:22px;border:1px solid #fecaca;border-radius:12px;background:#fff;color:#991b1b;line-height:1.7}
 </style>
 </head>
 <body>
-<div id="v53-loading">회비관리 프로그램을 불러오는 중입니다…</div>
-<div id="v53-error"></div>
+<div id="boot">회비관리 프로그램을 확인하여 불러오는 중입니다…</div>
+<div id="error"></div>
 <script>
-(function(){
+(function () {
+  'use strict';
+
   var BASE_COMMIT = "84c5b0de63964b0451b08de904ec00f986ed90c9";
+  var OLD_BRIDGE = "item.onclick=function (event) { event.preventDefault(); event.stopPropagation(); menu.hidden=true; originalButton.click(); };";
+  var NEW_BRIDGE = "(function (originalLabel) {\n        item.onclick=function (event) {\n          event.preventDefault();\n          event.stopPropagation();\n          menu.hidden=true;\n          var liveOriginal = cell.querySelector(':scope > div:not(.tx-compact-ui)');\n          var liveButton = liveOriginal && Array.from(liveOriginal.querySelectorAll('button')).find(function (button) {\n            return button.textContent.trim() === originalLabel;\n          });\n          if (!liveButton) return;\n          liveButton.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true, view:window }));\n        };\n      })(originalButton.textContent.trim());";
+
   var urls = [
     'https://cdn.jsdelivr.net/gh/ctasun/bucheon-fee-manager@' + BASE_COMMIT + '/index.html',
     'https://raw.githubusercontent.com/ctasun/bucheon-fee-manager/' + BASE_COMMIT + '/index.html'
   ];
-  var hotfix = "\n<script id=\"tx-classify-hotfix-v53\">\n/* v53 · 거래내역 '수정' 분류 변경 직접 저장 보정 */\n(function () {\n  var TX_KEY = 'mfm-tx-v2';\n\n  function readTx() {\n    try { return JSON.parse(localStorage.getItem(TX_KEY) || '[]'); }\n    catch (e) { return []; }\n  }\n  function norm(s) {\n    return String(s == null ? '' : s).replace(/\\s+/g, ' ').trim();\n  }\n  function money(s) {\n    var raw = String(s == null ? '' : s).replace(/,/g, '');\n    var m = raw.match(/-?\\d+/g);\n    return m ? Math.abs(Number(m.join(''))) : 0;\n  }\n  function rowIdentity(row) {\n    if (!row || !row.cells || row.cells.length < 5) return null;\n    var dt = norm(row.cells[0].textContent);\n    var dm = dt.match(/(\\d{4}-\\d{2}-\\d{2})(?:\\s+(\\d{1,2}:\\d{2}(?::\\d{2})?))?/);\n    if (!dm) return null;\n    return {\n      date: dm[1],\n      time: dm[2] || '',\n      name: norm(row.cells[1].textContent),\n      memo: norm(row.cells[2].textContent).replace(/^-$/, ''),\n      amount: money(row.cells[3].textContent),\n      desc: norm(row.cells[4].textContent).replace(/^-$/, '')\n    };\n  }\n  function findTxIndex(list, id) {\n    var exact = [];\n    for (var i = 0; i < list.length; i++) {\n      var t = list[i] || {};\n      if (String(t.date || '') !== id.date) continue;\n      if (Number(t.amount || 0) !== id.amount) continue;\n      if (norm(t.depositorName) !== id.name) continue;\n      if (id.time && norm(t.time) !== id.time) continue;\n      exact.push(i);\n    }\n    if (exact.length === 1) return exact[0];\n\n    var refined = exact.filter(function (i) {\n      var t = list[i] || {};\n      var memoOk = !id.memo || norm(t.transferMemo) === id.memo;\n      var descOk = !id.desc || norm(t.description) === id.desc;\n      return memoOk && descOk;\n    });\n    if (refined.length === 1) return refined[0];\n\n    var fallback = [];\n    for (var j = 0; j < list.length; j++) {\n      var x = list[j] || {};\n      if (String(x.date || '') === id.date &&\n          Number(x.amount || 0) === id.amount &&\n          norm(x.depositorName) === id.name) fallback.push(j);\n    }\n    return fallback.length === 1 ? fallback[0] : -1;\n  }\n  function classify(t, action) {\n    if (action === '회비로 인정') {\n      return Object.assign({}, t, {\n        direction: 'in',\n        category: t.memberId ? 'dues' : 'review',\n        manualAssign: true,\n        excluded: false,\n        matchPending: !t.memberId,\n        excludeReason: t.memberId ? '' : '회비 인정 전 회원 확인',\n        autoExcludeOverride: true\n      });\n    }\n    if (action === '찬조금으로 변경') {\n      return Object.assign({}, t, {\n        category: 'sponsorship',\n        manualAssign: true,\n        excluded: true,\n        matchPending: false,\n        excludeReason: '찬조금·회비 제외'\n      });\n    }\n    if (action === '정산반환으로 변경') {\n      return Object.assign({}, t, {\n        category: 'settlement',\n        manualAssign: true,\n        excluded: true,\n        matchPending: false,\n        excludeReason: '정산반환·회비 제외'\n      });\n    }\n    if (action === '기타제외로 변경') {\n      return Object.assign({}, t, {\n        memberId: null,\n        category: 'other',\n        manualAssign: true,\n        excluded: true,\n        matchPending: false,\n        excludeReason: '기타 회비 제외',\n        autoExcludeOverride: false\n      });\n    }\n    if (action === '확인필요로 표시') {\n      return Object.assign({}, t, {\n        category: 'review',\n        manualAssign: true,\n        excluded: false,\n        matchPending: true,\n        excludeReason: '관리자 확인필요'\n      });\n    }\n    return null;\n  }\n\n  document.addEventListener('click', function (event) {\n    var button = event.target && event.target.closest ? event.target.closest('.tx-action-menu button') : null;\n    if (!button) return;\n\n    var action = norm(button.textContent);\n    if (['회비로 인정','찬조금으로 변경','정산반환으로 변경','기타제외로 변경','확인필요로 표시'].indexOf(action) < 0) return;\n\n    var row = button.closest('tr');\n    var id = rowIdentity(row);\n    if (!id) return;\n\n    var list = readTx();\n    var idx = findTxIndex(list, id);\n    if (idx < 0) return;  // 유일하게 식별되지 않으면 기존 기능에 맡겨 오수정 방지\n\n    var changed = classify(list[idx], action);\n    if (!changed) return;\n\n    event.preventDefault();\n    event.stopPropagation();\n    if (event.stopImmediatePropagation) event.stopImmediatePropagation();\n\n    list[idx] = changed;\n    localStorage.setItem(TX_KEY, JSON.stringify(list));\n    location.reload();\n  }, true);\n})();\n<\/script>\n";
 
-  function fetchBase(i) {
-    if (i >= urls.length) return Promise.reject(new Error('v52 원본을 불러오지 못했습니다.'));
-    return fetch(urls[i], {cache:'no-cache'}).then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.text();
-    }).catch(function() { return fetchBase(i + 1); });
+  function countOf(source, target) {
+    return source.split(target).length - 1;
   }
 
-  fetchBase(0).then(function(src) {
-    if (src.indexOf('부천세무사회 회비관리') < 0 || src.indexOf('mfm-tx-v2') < 0) {
-      throw new Error('원본 파일 검증에 실패했습니다.');
+  function getBase(index) {
+    if (index >= urls.length) {
+      return Promise.reject(new Error('검증된 v52 원본을 불러오지 못했습니다.'));
     }
-    src = src.replace(
-      /<!-- BUILD_DATE:[\s\S]*?-->/,
-      '<!-- BUILD_DATE: 2026-09-04 | v53.1 거래 분류 수정 삽입 위치 오류 수정 · v52 전체 기능 유지 -->'
-    );
-    src = src.replace(
-      /<div id="buildstamp" class="build-date">[\s\S]*?<\/div>/,
-      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v53.1 · 업데이트 2026-09-04</div>'
-    );
-    var bodyEnd = src.lastIndexOf('</body>');
-    if (bodyEnd >= 0) src = src.slice(0, bodyEnd) + hotfix + '\n' + src.slice(bodyEnd);
-    else src += hotfix;
+    return fetch(urls[index], { cache: 'no-store' }).then(function (response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.text();
+    }).catch(function () {
+      return getBase(index + 1);
+    });
+  }
 
-    document.open();
-    document.write(src);
-    document.close();
-  }).catch(function(err) {
-    var loading = document.getElementById('v53-loading');
-    var box = document.getElementById('v53-error');
-    if (loading) loading.style.display = 'none';
+  function fail(message) {
+    var boot = document.getElementById('boot');
+    var box = document.getElementById('error');
+    if (boot) boot.style.display = 'none';
     if (box) {
       box.style.display = 'block';
-      box.textContent = '프로그램 원본을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요. (' + err.message + ')';
+      box.textContent = message;
     }
+  }
+
+  getBase(0).then(function (source) {
+    // v52 완전본인지 먼저 검증. 불일치하면 절대로 실행하지 않는다.
+    var required = [
+      '<div id="root"></div>',
+      'mfm-members-v2',
+      'mfm-tx-v2',
+      'mfm-fees-v2',
+      'mfm-config-v2',
+      'tx-compact-actions-v45',
+      'both-io-members-v50',
+      'fee-trace-v49'
+    ];
+    for (var i = 0; i < required.length; i++) {
+      if (source.indexOf(required[i]) < 0) {
+        throw new Error('v52 원본 검증 실패: ' + required[i]);
+      }
+    }
+
+    // 문제 지점 1곳만 교체한다.
+    var bridgeCount = countOf(source, OLD_BRIDGE);
+    if (bridgeCount !== 1) {
+      throw new Error('거래 수정 연결부 검증 실패: 대상 ' + bridgeCount + '곳');
+    }
+    source = source.replace(OLD_BRIDGE, NEW_BRIDGE);
+
+    // 버전 표기만 변경. 프로그램 본체/데이터 구조는 변경하지 않는다.
+    source = source.replace(
+      '<!-- BUILD_DATE: 2026-09-04 23:10 KST | v52 매칭/연결 제목 겹침 수정 · 2021년 이후 미납 전입회원 회비규칙 안내 · v51 기능 유지 -->',
+      '<!-- BUILD_DATE: 2026-09-04 | v53.2 거래내역 수정 연결 안정화 · 거래내역 탭 유지 · v52 전체 기능 유지 -->'
+    );
+    source = source.replace(
+      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v52 · 업데이트 2026-09-04</div>',
+      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v53.2 · 업데이트 2026-09-04</div>'
+    );
+
+    // 재검증: 이전 브리지/직접 재로딩이 남지 않았는지 확인.
+    if (source.indexOf(OLD_BRIDGE) >= 0) throw new Error('이전 거래 수정 연결부가 남아 있습니다.');
+    if (source.indexOf(NEW_BRIDGE) < 0) throw new Error('새 거래 수정 연결부 적용에 실패했습니다.');
+
+    // 외부 hotfix/localStorage 직접 수정 없이 v52 React 상태 변경 함수를 그대로 실행한다.
+    document.open();
+    document.write(source);
+    document.close();
+  }).catch(function (error) {
+    fail('프로그램 안전검증 중 중단되었습니다. 파일을 그대로 두고 관리자에게 알려주세요. (' + error.message + ')');
   });
 })();
 </script>
