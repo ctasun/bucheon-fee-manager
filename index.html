@@ -21,6 +21,9 @@ html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI
   var OLD_BRIDGE = "item.onclick=function (event) { event.preventDefault(); event.stopPropagation(); menu.hidden=true; originalButton.click(); };";
   var NEW_BRIDGE = "(function (originalLabel) {\n        item.onclick=function (event) {\n          event.preventDefault();\n          event.stopPropagation();\n          menu.hidden=true;\n          var liveOriginal = cell.querySelector(':scope > div:not(.tx-compact-ui)');\n          var liveButton = liveOriginal && Array.from(liveOriginal.querySelectorAll('button')).find(function (button) {\n            return button.textContent.trim() === originalLabel;\n          });\n          if (!liveButton) return;\n          liveButton.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true, view:window }));\n        };\n      })(originalButton.textContent.trim());";
 
+  var OLD_STATUS_INFO = "    if (full.indexOf('찬조금') !== -1 && buttons.indexOf('회비로 인정') !== -1) { status='찬조금'; cls='tx-badge-sponsorship'; }\n    else if (full.indexOf('정산반환') !== -1 && buttons.indexOf('회비로 인정') !== -1) { status='정산반환'; cls='tx-badge-settlement'; }\n    else if (full.indexOf('비용집행') !== -1) { status='비용집행'; cls='tx-badge-expense'; }\n    else if (buttons.indexOf('회비로 인정') !== -1) { status='기타제외'; cls='tx-badge-other'; }";
+  var NEW_STATUS_INFO = "    if (text.indexOf('찬조금') !== -1 && buttons.indexOf('회비로 인정') !== -1) { status='찬조금'; cls='tx-badge-sponsorship'; }\n    else if (text.indexOf('정산반환') !== -1 && buttons.indexOf('회비로 인정') !== -1) { status='정산반환'; cls='tx-badge-settlement'; }\n    else if (text.indexOf('비용집행') !== -1) { status='비용집행'; cls='tx-badge-expense'; }\n    else if (buttons.indexOf('회비로 인정') !== -1) { status='기타제외'; cls='tx-badge-other'; }";
+
   var urls = [
     'https://cdn.jsdelivr.net/gh/ctasun/bucheon-fee-manager@' + BASE_COMMIT + '/index.html',
     'https://raw.githubusercontent.com/ctasun/bucheon-fee-manager/' + BASE_COMMIT + '/index.html'
@@ -77,19 +80,29 @@ html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI
     }
     source = source.replace(OLD_BRIDGE, NEW_BRIDGE);
 
+    // v53.3: 거래 상태 표시는 숨겨진 작업버튼 문구가 아니라 실제 상태 문구(text)로 판정한다.
+    // 기존 full에는 '찬조금' 버튼명이 항상 포함되어 기타제외도 찬조금으로 보이는 오류가 있었다.
+    var statusCount = countOf(source, OLD_STATUS_INFO);
+    if (statusCount !== 1) {
+      throw new Error('거래 상태 표시부 검증 실패: 대상 ' + statusCount + '곳');
+    }
+    source = source.replace(OLD_STATUS_INFO, NEW_STATUS_INFO);
+
     // 버전 표기만 변경. 프로그램 본체/데이터 구조는 변경하지 않는다.
     source = source.replace(
       '<!-- BUILD_DATE: 2026-09-04 23:10 KST | v52 매칭/연결 제목 겹침 수정 · 2021년 이후 미납 전입회원 회비규칙 안내 · v51 기능 유지 -->',
-      '<!-- BUILD_DATE: 2026-09-04 | v53.2 거래내역 수정 연결 안정화 · 거래내역 탭 유지 · v52 전체 기능 유지 -->'
+      '<!-- BUILD_DATE: 2026-09-04 | v53.3 거래분류 표시판정 수정 · 거래내역 수정 연결 유지 · v52 전체 기능 유지 -->'
     );
     source = source.replace(
       '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v52 · 업데이트 2026-09-04</div>',
-      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v53.2 · 업데이트 2026-09-04</div>'
+      '<div id="buildstamp" class="build-date">부천세무사회 회비관리 · v53.3 · 업데이트 2026-09-04</div>'
     );
 
     // 재검증: 이전 브리지/직접 재로딩이 남지 않았는지 확인.
     if (source.indexOf(OLD_BRIDGE) >= 0) throw new Error('이전 거래 수정 연결부가 남아 있습니다.');
     if (source.indexOf(NEW_BRIDGE) < 0) throw new Error('새 거래 수정 연결부 적용에 실패했습니다.');
+    if (source.indexOf(OLD_STATUS_INFO) >= 0) throw new Error('이전 거래 상태 표시판정이 남아 있습니다.');
+    if (source.indexOf(NEW_STATUS_INFO) < 0) throw new Error('새 거래 상태 표시판정 적용에 실패했습니다.');
 
     // 외부 hotfix/localStorage 직접 수정 없이 v52 React 상태 변경 함수를 그대로 실행한다.
     document.open();
